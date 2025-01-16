@@ -1,0 +1,64 @@
+﻿FUNCTION "LAxisCtrlApcFr_Update_DataAxisConfig" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      dataAxisConfigLaxisCtrlApcFR : "LAxisCtrlApcFr_typeAxisConfig";
+   END_VAR
+
+   VAR_OUTPUT 
+      dataAxisConfigLaxisCtrl : "LAxisCtrl_typeAxisConfig";
+   END_VAR
+
+
+BEGIN
+	// ----- All identical structure -----
+	#dataAxisConfigLaxisCtrl.generalSettings := #dataAxisConfigLaxisCtrlApcFR.generalSettings;
+	#dataAxisConfigLaxisCtrl.power := #dataAxisConfigLaxisCtrlApcFR.power;
+	#dataAxisConfigLaxisCtrl.jog := #dataAxisConfigLaxisCtrlApcFR.jog;
+	#dataAxisConfigLaxisCtrl.moveVelocity := #dataAxisConfigLaxisCtrlApcFR.moveVelocity;
+	#dataAxisConfigLaxisCtrl.stop := #dataAxisConfigLaxisCtrlApcFR.stop;
+	//#dataAxisConfigLAxisCtrl.fastStop := #dataAxisConfigLAxisCtrlApcFR.fastStop;
+	#dataAxisConfigLaxisCtrl.torqueLimiting := #dataAxisConfigLaxisCtrlApcFR.torqueLimiting;
+	#dataAxisConfigLaxisCtrl.homing := #dataAxisConfigLaxisCtrlApcFR.homing;
+	#dataAxisConfigLaxisCtrl.posRelative := #dataAxisConfigLaxisCtrlApcFR.posRelative;
+	#dataAxisConfigLaxisCtrl.posAbsolute := #dataAxisConfigLaxisCtrlApcFR.posAbsolute;
+	#dataAxisConfigLaxisCtrl.posSuperimposed := #dataAxisConfigLaxisCtrlApcFR.posSuperimposed;
+	#dataAxisConfigLaxisCtrl.haltSuperimposed := #dataAxisConfigLaxisCtrlApcFR.haltSuperimposed;
+	#dataAxisConfigLaxisCtrl.gearInRelative := #dataAxisConfigLaxisCtrlApcFR.gearInRelative;
+	#dataAxisConfigLaxisCtrl.gearOutCamOut := #dataAxisConfigLaxisCtrlApcFR.gearOutCamOut;
+	#dataAxisConfigLaxisCtrl.phasing := #dataAxisConfigLaxisCtrlApcFR.phasing;
+	#dataAxisConfigLaxisCtrl.offset := #dataAxisConfigLaxisCtrlApcFR.offset;
+	#dataAxisConfigLaxisCtrl.gearInVelocity := #dataAxisConfigLaxisCtrlApcFR.gearInVelocity;
+	
+	// ----- GearInAbsolute Extended -----
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.ratioNumerator := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.ratioNumerator;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.ratioDenominator := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.ratioDenominator;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.masterSyncPosition := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.masterSyncPosition;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.slaveSyncPosition := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.slaveSyncPosition;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.syncProfileReference := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.syncProfileReference;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.masterStartDistance := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.masterStartDistance;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.velocity := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.velocity;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.acceleration := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.acceleration;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.deceleration := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.deceleration;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.jerk := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.jerk;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.syncDirection := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.syncDirection;
+	#dataAxisConfigLaxisCtrl.gearInAbsolute.ratioChangeOnTheFly := #dataAxisConfigLaxisCtrlApcFR.gearInAbsoluteExtended.ratioChangeOnTheFly;
+	
+	// ----- CamIn Extended -----
+	#dataAxisConfigLaxisCtrl.camIn.masterOffset := #dataAxisConfigLaxisCtrlApcFR.camInExtended.masterOffset;
+	#dataAxisConfigLaxisCtrl.camIn.slaveOffset := #dataAxisConfigLaxisCtrlApcFR.camInExtended.slaveOffset;
+	#dataAxisConfigLaxisCtrl.camIn.masterScaling := #dataAxisConfigLaxisCtrlApcFR.camInExtended.masterScaling;
+	#dataAxisConfigLaxisCtrl.camIn.slaveScaling := #dataAxisConfigLaxisCtrlApcFR.camInExtended.slaveScaling;
+	#dataAxisConfigLaxisCtrl.camIn.masterSyncPosition := #dataAxisConfigLaxisCtrlApcFR.camInExtended.masterSyncPosition;
+	#dataAxisConfigLaxisCtrl.camIn.syncProfileReference := #dataAxisConfigLaxisCtrlApcFR.camInExtended.syncProfileReference;
+	#dataAxisConfigLaxisCtrl.camIn.masterStartDistance := #dataAxisConfigLaxisCtrlApcFR.camInExtended.masterStartDistance;
+	#dataAxisConfigLaxisCtrl.camIn.velocity := #dataAxisConfigLaxisCtrlApcFR.camInExtended.velocity;
+	#dataAxisConfigLaxisCtrl.camIn.acceleration := #dataAxisConfigLaxisCtrlApcFR.camInExtended.acceleration;
+	#dataAxisConfigLaxisCtrl.camIn.deceleration := #dataAxisConfigLaxisCtrlApcFR.camInExtended.deceleration;
+	#dataAxisConfigLaxisCtrl.camIn.jerk := #dataAxisConfigLaxisCtrlApcFR.camInExtended.jerk;
+	#dataAxisConfigLaxisCtrl.camIn.applicationMode := #dataAxisConfigLaxisCtrlApcFR.camInExtended.applicationMode;
+	#dataAxisConfigLaxisCtrl.camIn.syncDirection := #dataAxisConfigLaxisCtrlApcFR.camInExtended.syncDirection;
+	
+	
+END_FUNCTION
+

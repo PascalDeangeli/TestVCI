@@ -1,0 +1,503 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_EndLessMode"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : SDA
+FAMILY : APCFR
+VERSION : 1.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      start { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge starts : moving axis / Falling edge : stop axis to positionStop
+      positionStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := 0.0;   // Axis stop position
+      Velocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := -1.0;   // Axis velocity
+      acceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Acceleration for all moving
+      deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Deceleration for all moving
+      jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Axis jerk
+      positioningDirection { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Int;   // Motion direction of the axis (0: The sign of the velocity parameter defines the direction; 1: Positive direction; 2: Negative direction; 3: Shortest way)
+      abortingWithoutError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // authorized instructions to abort move velocity without error
+      axis : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Commanded action has been completed successfully
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: FB is not finished and new output values can be expected
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge informs that an error occurred during the execution of
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_NO_CALL";   // Current status of FB
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_FINISHED_NOERROR";
+      errorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 0;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statVelocityOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      statAxisStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         boError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boStandstill { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boEnabled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHomed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boTorqueLimitingCommandActive { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boSWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boNonPositionControlled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      END_STRUCT;
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      instMoveVelocity {InstructionName := 'MC_MOVEVELOCITY'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEVELOCITY;
+      instHalt {InstructionName := 'MC_HALT'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HALT;
+      instMoveAbsolute {InstructionName := 'MC_MOVEABSOLUTE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEABSOLUTE;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+
+BEGIN
+	//===========================================================================================
+	// SIEMENS SAS      RC-FR DI FA APC
+	// ------------------------------------------------------------------------------------------
+	// Library:         LAPCFR
+	// Tested with:     S7-1515TF
+	// FW Version:      2.8.2
+	// Engineering:     TIA Portal V16
+	// Restrictions:    ---
+	// Requirements:    Motion Control Library V5.0
+	//--------------------------------------------------------------------------------------------
+	// Description:     - Move axis in velocity and stop it at position stop when losing start input
+	//
+	//--------------------------------------------------------------------------------------------
+	// Change log table:
+	// Version    Date          Expert in charge    Changes applied
+	// 01.00.00   2020.07.24    SDA                 First released version 
+	// 01.01.00   2022.02.07    SDA                 Change velocity on the fly
+	//                                              Start with zero velocity allowed
+	//                                              Add input to abort Move_Velocity without error
+	// 01.02.00   2022.04.20    FGe                 Moved constants to global definition
+	// 05.00.00   2024.09.11    SDa                 Adaptation with DBAny type #axis
+	//---------------------------------------------------------------------------------------------------
+	// Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	// e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	//============================================================================================
+	
+	
+	REGION INITIALISATION
+	    #tempRefPosAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefPosAxis <> NULL) THEN
+	    // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #instMoveVelocity(Axis := #tempRefPosAxis^,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk,
+	                          Current := FALSE,
+	                          PositionControlled := TRUE);
+	        
+	        #instMoveAbsolute(Axis := #tempRefPosAxis^,
+	                          Position := #positionStop,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk);
+	        
+	        #instHalt(Axis := #tempRefPosAxis^,
+	                  Deceleration := #deceleration,
+	                  Jerk := #jerk);
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	    //MAIN SECTION
+	    //
+	    //Check if FB is triggered
+	    IF #start AND NOT #statExecuteOld
+	        // See below: FB should finish current job before new job can be started
+	        // with rising edge of execute
+	        AND NOT #statBusy // Remove the first comment characters if FB should finish current
+	        // job before new job can be started with rising edge of execute
+	    THEN
+	        REGION FB TRIG (FIRST CALL)
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	            //
+	            
+	            // Status
+	            #statNextStep := 10;
+	            #statStatus := "STATUS_FINISHED_NOERROR";
+	            #statErrorID := "STATUS_FINISHED_NOERROR";
+	            // Timers
+	            #statStepTimeOut_IN := FALSE;
+	            // Commands
+	            #instMoveVelocity.Execute := FALSE;
+	            #instMoveAbsolute.Execute := FALSE;
+	            #instHalt.Execute := FALSE;
+	            
+	            //-----------------------------------------------------------------------------------
+	            //Functionality is busy
+	            #statBusy := TRUE;
+	            #statDone := false;
+	            //Reset other outputs
+	            #statError := FALSE;
+	            // Diagnostic
+	            #status := "STATUS_FIRST_CALL";
+	            #subStatus := "STATUS_FINISHED_NOERROR";
+	            
+	            #errorValue := 0;
+	            #busy := #statBusy;
+	            #done := #statDone;
+	            #error := #statError;
+	            #statExecuteOld := #start;
+	            RETURN;
+	        END_REGION
+	        //FB is currently inactive
+	    ELSIF NOT #start AND NOT #statBusy AND NOT #statExecuteOld
+	    THEN
+	        REGION NO CALL
+	            //Error outputs are reset with falling edge of enable input
+	            #statError := FALSE;
+	            //Done and busy are reset with falling edge of enable input
+	            //#statDone := #done; //FALSE; SDA
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //Write outputs
+	            #done := #statDone;
+	            #busy := #statBusy;
+	            #commandAborted := #statCommandAborted;
+	            #error := #statError;
+	            // Diagnostic
+	            #status := "STATUS_NO_CALL";
+	            #subStatus := "STATUS_FINISHED_NOERROR";
+	            
+	            #errorValue := 0;
+	            #statExecuteOld := #start;
+	            RETURN;
+	        END_REGION
+	        
+	        //FB is currently executed and not finished
+	    ELSIF #statBusy OR #start
+	    THEN
+	        REGION BUSY
+	            #statExecuteOld := #start;
+	        END_REGION
+	        //FB finished job
+	    ELSE
+	        REGION LAST CALL
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	            //
+	            
+	            // Status
+	            #statNextStep := 0;
+	            #statStatus := "STATUS_FINISHED_NOERROR";
+	            #statErrorID := "STATUS_FINISHED_NOERROR";
+	            // Timers
+	            #statStepTimeOut_IN := FALSE;
+	            //Commands
+	            #instMoveVelocity.Execute := FALSE;
+	            #instMoveAbsolute.Execute := FALSE;
+	            #instHalt.Execute := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            #statExecuteOld := #start;
+	            RETURN; //Wait for start of functionality 
+	        END_REGION
+	    END_IF;
+	    //-----------------------------------------------------------------------------------
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //------------------
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statError:    Error happened in program
+	        //  - status:       Identifier for current error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //------------------
+	        
+	        REGION END LESS MODE
+	            
+	            // Init axis status
+	            #statAxisStatus.boStandstill := #tempRefPosAxis^.StatusWord.%X7;
+	            #statAxisStatus.boEnabled := #tempRefPosAxis^.StatusWord.%X0;
+	            #statAxisStatus.boError := #tempRefPosAxis^.StatusWord.%X1;
+	            #statAxisStatus.boHomed := #tempRefPosAxis^.StatusWord.%X5;
+	            #statAxisStatus.boNonPositionControlled := #tempRefPosAxis^.StatusWord.%X28;
+	            
+	            // update running step
+	            #statActualStep := #statNextStep;
+	            CASE #statActualStep OF
+	                    
+	                10: // Check EndLess Mode conditions
+	                    REGION CHECK CONDITIONS
+	                        IF #statAxisStatus.boNonPositionControlled THEN
+	                            // Last move command was in non-positin controled mode
+	                            #statStatus := "ERR_ELM_MC_NOT_IN_POSCONTROLED_MODE";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF NOT #statAxisStatus.boHomed THEN
+	                            // Axis not homed
+	                            #statStatus := "ERR_ELM_AXIS_NOT_HOMED";
+	                            #statNextStep := 900;
+	                        ELSIF (NOT #statAxisStatus.boEnabled) THEN
+	                            // Axis not enabled
+	                            // includes all case like axis config error, drive fault,...
+	                            #statStatus := "ERR_ELM_ERR_AXIS_DISABLED";
+	                            #statNextStep := 900;
+	                            
+	                            //ELSIF ABS(#Velocity) <= tempRefPosAxis^.StandstillSignal.VelocityThreshold THEN
+	                            // velocity setpoint < standstill threshold 
+	                            //    #statStatus := "ERR_ELM_VELOCITY_SETPOINT_INF_VELOCITYTHRESHOLD";
+	                            //    #statNextStep := 900;
+	                            
+	                        ELSIF #positioningDirection > 3 THEN
+	                            // error direction mode 
+	                            #statStatus := "ERR_ELM_POSITIONING_DIRECTION";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #tempRefPosAxis^.Modulo.Enable AND (#positionStop < #tempRefPosAxis^.Modulo.StartValue) AND (#positionStop > (#tempRefPosAxis^.Modulo.StartValue + #tempRefPosAxis^.Modulo.Length)) THEN
+	                            // positionStop not wihtin module range 
+	                            #statStatus := "ERR_ELM_MODULO_POSITIONSTOP_VALUE";
+	                            #statNextStep := 900;
+	                            
+	                        ELSE
+	                            // Next step
+	                            #statNextStep := 20;
+	                        END_IF;
+	                    END_REGION
+	                    
+	                20: // Move axis 
+	                    REGION MOVE VELOCITY AXIS                            
+	                        // Step timeout
+	                        #statStepTimeOut_PT := "LAPCFR_ELM_MOVEVELOCITY_TIMEOUT";
+	                        #statStepTimeOut_IN := TRUE;
+	                        
+	                        // Move axis
+	                        #instMoveVelocity.Execute := TRUE;
+	                        #instMoveVelocity.Velocity := #Velocity;
+	                        #instMoveVelocity.Direction := 0;
+	                        #statVelocityOld := #Velocity;
+	                        
+	                        // Next Step
+	                        IF #instMoveVelocity.Busy THEN
+	                            // Axis moving
+	                            #statStepTimeOut_IN := FALSE;
+	                            #instMoveVelocity.Execute := FALSE;
+	                            #statNextStep := 30;
+	                            
+	                        ELSIF #instMoveVelocity.CommandAborted THEN
+	                            // MC_MoveVelocity aborted
+	                            #statErrorValue := #statActualStep;
+	                            #statStatus := "ERR_ELM_MOVE_VELOCITY_ABORTED";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMoveVelocity.Error THEN
+	                            // MC_MoveVelocity error
+	                            #statStatus := "ERR_ELM_MC_MOVEVELOCITY";
+	                            #statErrorID := #instMoveVelocity.ErrorId;
+	                            
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instStepTimeOut.Q THEN
+	                            // move velocity not started
+	                            #statStatus := "ERR_ELM_MC_MOVEVELOCITY_TIMEOUT";
+	                            #statNextStep := 900;
+	                            
+	                        END_IF;
+	                    END_REGION
+	                    
+	                    
+	                30: // Waiting start input at false or velocity changing
+	                    REGION WAITING EXECUTE AT FALSE
+	                        #instMoveVelocity.Execute := FALSE;
+	                        // Next Step
+	                        IF #abortingWithoutError THEN
+	                            // Next step
+	                            #statNextStep := 120;
+	                            
+	                        ELSIF #Velocity <> #statVelocityOld THEN
+	                            // Move axis
+	                            #instMoveVelocity.Execute := TRUE;
+	                            #instMoveVelocity.Velocity := #Velocity;
+	                            #instMoveVelocity.Direction := 0;
+	                            #statVelocityOld := #Velocity;
+	                            
+	                        ELSIF #instMoveVelocity.CommandAborted AND NOT #abortingWithoutError THEN
+	                            // MC_MoveVelocity aborted
+	                            #statErrorValue := #statActualStep;
+	                            #statStatus := "ERR_ELM_MOVE_VELOCITY_ABORTED";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMoveVelocity.Error THEN
+	                            // MC_MoveVelocity error
+	                            #statStatus := "ERR_ELM_MC_MOVEVELOCITY";
+	                            #statErrorID := #instMoveVelocity.ErrorId;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #start = FALSE THEN
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 40;
+	                            
+	                        END_IF;
+	                    END_REGION
+	                    
+	                40: // Stop axis to position stop
+	                    REGION STOP AXIS TO POSITION STOP
+	                        // Step timeout
+	                        #statStepTimeOut_PT := "LAPCFR_ELM_MOVEABSOLUTE_TIMEOUT";
+	                        #statStepTimeOut_IN := TRUE;
+	                        
+	                        // Move axis
+	                        #instMoveAbsolute.Execute := TRUE;
+	                        #instMoveAbsolute.Velocity := ABS(#Velocity);
+	                        IF #positioningDirection <> 0 THEN
+	                            #instMoveAbsolute.Direction := #positioningDirection;
+	                        ELSE
+	                            IF #Velocity < 0 THEN
+	                                #instMoveAbsolute.Direction := "LAPCFR_ELM_DIR_NEGATIVE"; // negative direction
+	                            ELSE
+	                                #instMoveAbsolute.Direction := "LAPCFR_ELM_DIR_POSITIVE"; // positive direction
+	                            END_IF;
+	                        END_IF;
+	                        
+	                        // Next Step
+	                        IF #instStepTimeOut.Q THEN
+	                            // Move timeout
+	                            #statStatus := "ERR_ELM_MC_MOVEABSOLUTE_TIMEOUT";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMoveAbsolute.Error THEN
+	                            // Move error
+	                            // Including Axis disabled (eg externam MC_Power OFF, Fault in drive,...)
+	                            #statStatus := "ERR_ELM_MC_MOVEABSOLUTE";
+	                            #statErrorID := #instMoveAbsolute.ErrorId;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMoveAbsolute.CommandAborted THEN
+	                            // Command aborted
+	                            #statErrorValue := #statActualStep;
+	                            #statCommandAborted := TRUE;
+	                            #statStatus := "ERR_ELM_COMMAND_ABORTED";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMoveAbsolute.Done THEN
+	                            // Move absolute done
+	                            #statStepTimeOut_IN := FALSE;
+	                            #instMoveAbsolute.Execute := FALSE;
+	                            // Next step
+	                            #statNextStep := 120;
+	                        END_IF;
+	                        
+	                    END_REGION
+	                    
+	                120://Function Ok
+	                    REGION FUNCTION_DONE
+	                        #statDone := TRUE;
+	                    END_REGION ;
+	                    
+	                900:  //Fault handling
+	                    REGION FUNCTION_FAULTY 
+	                        
+	                        // Reset Timers
+	                        #statStepTimeOut_IN := FALSE;
+	                        
+	                        // Reset Commands
+	                        #instHalt.Execute := FALSE;
+	                        #instMoveVelocity.Execute := FALSE;
+	                        #instMoveAbsolute.Execute := FALSE;
+	                        
+	                        // Stop Axis
+	                        IF NOT #statAxisStatus.boStandstill AND #statAxisStatus.boEnabled THEN
+	                            #instHalt.Execute := TRUE;
+	                        ELSE
+	                            #instHalt.Execute := FALSE;
+	                            #statNextStep := 910;
+	                        END_IF;
+	                    END_REGION
+	                    
+	                910:   // Homing ended with fault
+	                    #statError := TRUE;
+	                    
+	            END_CASE;
+	            
+	            IF #statNextStep = 900 AND #statActualStep <> 900 THEN
+	                // Store faulty step
+	                #statErrorValue := #statActualStep;
+	            END_IF;
+	            
+	        END_REGION
+	        
+	        //
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	    REGION ERROR_HANDLING
+	        //Write ouputs and error handling
+	        //-----------------------------------------------------------------------------------
+	        //Error occured in request
+	        IF #statError THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly
+	            //#status := ...;
+	            //
+	            #status := #statStatus;
+	            #subStatus := #statErrorID;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            //Request finished
+	        ELSIF #statDone THEN
+	            #statBusy := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	        END_IF;
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #commandAborted := #statCommandAborted;
+	        #busy := #statBusy;
+	        #error := #statError;
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	    
+	ELSE
+	    IF #start THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

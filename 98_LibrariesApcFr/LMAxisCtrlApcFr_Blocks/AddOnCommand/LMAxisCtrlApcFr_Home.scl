@@ -1,0 +1,42 @@
+﻿FUNCTION_BLOCK "LMAxisCtrlApcFr_Home"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ExecuteHoming { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      Mode { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      Position { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real;
+   END_VAR
+
+   VAR_IN_OUT 
+      AxisFB_Interface : "LMAxisCtrlApcFr_TypeInterface";
+   END_VAR
+
+   VAR 
+      statEdgeUp { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: First call of FB
+      statEdgeDown { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStateOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of enable for edge detection
+   END_VAR
+
+
+BEGIN
+	//=====================================================================================================
+	#statEdgeUp := #ExecuteHoming AND NOT #statStateOld;
+	#statEdgeDown := NOT #ExecuteHoming AND #statStateOld;
+	#statStateOld := #ExecuteHoming;
+	
+	REGION EdgeUp
+	    IF #statEdgeUp THEN
+	        #AxisFB_Interface.In.homing := TRUE;
+	        #AxisFB_Interface.In.dataAxisConfig.homing.mode := #Mode;
+	        #AxisFB_Interface.In.dataAxisConfig.homing.position := #Position;
+	    END_IF;
+	END_REGION
+	
+	REGION EdgeDown
+	    IF #statEdgeDown THEN
+	        #AxisFB_Interface.In.homing := FALSE;
+	    END_IF;
+	END_REGION
+	//=====================================================================================================
+END_FUNCTION_BLOCK
+

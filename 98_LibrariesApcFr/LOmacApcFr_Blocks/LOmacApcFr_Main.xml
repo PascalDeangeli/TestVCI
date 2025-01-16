@@ -1,0 +1,1405 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut">
+    <Member Name="OmacInterface" Datatype="&quot;LMOmacApcFr_TypeInterface&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="instLPMLV30_UnitModeStateManager" Datatype="&quot;LPMLV30_UnitModeStateManager&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="instLPMLV30_UnitModeStateTimes" Datatype="&quot;LPMLV30_UnitModeStateTimes&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="instLOmacApcFr_CumulativeTimeSplitDINT" Datatype="&quot;LOmacApcFr_CumulativeTimeSplitDINT&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="Temp">
+    <Member Name="tempLocalSC" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">State complete signal (one cycle)</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">State complete signal (one cycle)</MultiLanguageText>
+        <MultiLanguageText Lang="de-DE">State complete signal (one cycle)</MultiLanguageText>
+      </Comment>
+    </Member>
+  </Section>
+  <Section Name="Constant" />
+</Sections></Interface>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>LOmacApcFr_Main</Name>
+      <Namespace />
+      <Number>25</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="5" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="6" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="tempLocalSC" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="SC" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="tempLocalSC" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="SC" />
+      </Symbol>
+    </Access>
+    <Part Name="RCoil" UId="25" />
+    <Part Name="Contact" UId="26" />
+    <Part Name="Coil" UId="27" />
+    <Part Name="RCoil" UId="28" />
+  </Parts>
+  <Wires>
+    <Wire UId="29">
+      <Powerrail />
+      <NameCon UId="25" Name="in" />
+      <NameCon UId="26" Name="in" />
+      <NameCon UId="28" Name="in" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="21" />
+      <NameCon UId="25" Name="operand" />
+    </Wire>
+    <Wire UId="31">
+      <IdentCon UId="22" />
+      <NameCon UId="26" Name="operand" />
+    </Wire>
+    <Wire UId="32">
+      <NameCon UId="26" Name="out" />
+      <NameCon UId="27" Name="in" />
+    </Wire>
+    <Wire UId="33">
+      <IdentCon UId="23" />
+      <NameCon UId="27" Name="operand" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="24" />
+      <NameCon UId="28" Name="operand" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="7" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>State Complete </Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>State Complete </Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="11" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="UnitModeSelected" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="UnitModeChangeRequest" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="StateSelected" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="StateChangeRequest" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="EnableBooleanInterface" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="26">
+      <Symbol>
+        <Component Name="tempLocalSC" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="27">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="configuration" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="28">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="29">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeRequested" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="30">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeChangeInProcess" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="31">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="32">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateRequested" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="33">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateChangeInProcess" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="34">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="ModeBooleanState" />
+        <Component Name="ProductionModeActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="35">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="ModeBooleanState" />
+        <Component Name="MaintenanceModeActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="36">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="ModeBooleanState" />
+        <Component Name="ManualModeActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="37">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="ClearingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="38">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="StoppedStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="39">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="StartingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="40">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="IdleStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="41">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="SuspendedStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="42">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="ExecuteStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="43">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="StoppingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="44">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="AbortingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="45">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="AbortedStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="46">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="HoldingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="47">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="HeldStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="48">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="UnholdingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="49">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="SuspendedStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="50">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="UnsuspendingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="51">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="ResettingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="52">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="CompletingStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="53">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateBooleanState" />
+        <Component Name="CompleteStateActive" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="54">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StatesDisabled" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="55">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="diagnostics" />
+      </Symbol>
+    </Access>
+    <Call UId="56">
+      <CallInfo Name="LPMLV30_UnitModeStateManager" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="57">
+          <Component Name="instLPMLV30_UnitModeStateManager" />
+        </Instance>
+        <Parameter Name="UnitMode" Section="Input" Type="DInt" />
+        <Parameter Name="UnitModeChangeRequest" Section="Input" Type="Bool" />
+        <Parameter Name="CntrlCmd" Section="Input" Type="DInt" />
+        <Parameter Name="CmdChangeRequest" Section="Input" Type="Bool" />
+        <Parameter Name="enableBooleanInterface" Section="Input" Type="Bool" />
+        <Parameter Name="ProductionModeRequest" Section="Input" Type="Bool" />
+        <Parameter Name="MaintenanceModeRequest" Section="Input" Type="Bool" />
+        <Parameter Name="ManualModeRequest" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode01Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode02Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode03Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode04Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode05Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode06Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode07Request" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode08Request" Section="Input" Type="Bool" />
+        <Parameter Name="ResetCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="StartCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="StopCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="HoldCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="UnholdCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="UnsuspendCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="AbortCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="ClearCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="CompleteCmdRequest" Section="Input" Type="Bool" />
+        <Parameter Name="SC" Section="Input" Type="Bool" />
+        <Parameter Name="configuration" Section="Input" Type="&quot;typeLPMLV30_Configuration&quot;" />
+        <Parameter Name="UnitModeCurrent" Section="Output" Type="DInt" />
+        <Parameter Name="UnitModeRequested" Section="Output" Type="DInt" />
+        <Parameter Name="UnitModeChangeInProcess" Section="Output" Type="Bool" />
+        <Parameter Name="StateCurrent" Section="Output" Type="DInt" />
+        <Parameter Name="StateRequested" Section="Output" Type="DInt" />
+        <Parameter Name="StateChangeInProcess" Section="Output" Type="Bool" />
+        <Parameter Name="ProductionModeActive" Section="Output" Type="Bool" />
+        <Parameter Name="MaintenanceModeActive" Section="Output" Type="Bool" />
+        <Parameter Name="ManualModeActive" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode01Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode02Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode03Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode04Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode05Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode06Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode07Active" Section="Output" Type="Bool" />
+        <Parameter Name="UserMode08Active" Section="Output" Type="Bool" />
+        <Parameter Name="ClearingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="StoppedStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="StartingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="IdleStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="SuspendedStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="ExecuteStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="StoppingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="AbortingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="AbortedStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="HoldingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="HeldStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="UnholdingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="SuspendingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="UnsuspendingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="ResettingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="CompletingStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="CompleteStateActive" Section="Output" Type="Bool" />
+        <Parameter Name="StatesDisabled" Section="Output" Type="DInt" />
+        <Parameter Name="diagnostics" Section="Output" Type="&quot;typeLPMLV30_Diagnostics&quot;" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="87">
+      <Powerrail />
+      <NameCon UId="56" Name="en" />
+    </Wire>
+    <Wire UId="88">
+      <IdentCon UId="21" />
+      <NameCon UId="56" Name="UnitMode" />
+    </Wire>
+    <Wire UId="89">
+      <IdentCon UId="22" />
+      <NameCon UId="56" Name="UnitModeChangeRequest" />
+    </Wire>
+    <Wire UId="90">
+      <IdentCon UId="23" />
+      <NameCon UId="56" Name="CntrlCmd" />
+    </Wire>
+    <Wire UId="91">
+      <IdentCon UId="24" />
+      <NameCon UId="56" Name="CmdChangeRequest" />
+    </Wire>
+    <Wire UId="92">
+      <IdentCon UId="25" />
+      <NameCon UId="56" Name="enableBooleanInterface" />
+    </Wire>
+    <Wire UId="93">
+      <OpenCon UId="58" />
+      <NameCon UId="56" Name="ProductionModeRequest" />
+    </Wire>
+    <Wire UId="94">
+      <OpenCon UId="59" />
+      <NameCon UId="56" Name="MaintenanceModeRequest" />
+    </Wire>
+    <Wire UId="95">
+      <OpenCon UId="60" />
+      <NameCon UId="56" Name="ManualModeRequest" />
+    </Wire>
+    <Wire UId="96">
+      <OpenCon UId="61" />
+      <NameCon UId="56" Name="UserMode01Request" />
+    </Wire>
+    <Wire UId="97">
+      <OpenCon UId="62" />
+      <NameCon UId="56" Name="UserMode02Request" />
+    </Wire>
+    <Wire UId="98">
+      <OpenCon UId="63" />
+      <NameCon UId="56" Name="UserMode03Request" />
+    </Wire>
+    <Wire UId="99">
+      <OpenCon UId="64" />
+      <NameCon UId="56" Name="UserMode04Request" />
+    </Wire>
+    <Wire UId="100">
+      <OpenCon UId="65" />
+      <NameCon UId="56" Name="UserMode05Request" />
+    </Wire>
+    <Wire UId="101">
+      <OpenCon UId="66" />
+      <NameCon UId="56" Name="UserMode06Request" />
+    </Wire>
+    <Wire UId="102">
+      <OpenCon UId="67" />
+      <NameCon UId="56" Name="UserMode07Request" />
+    </Wire>
+    <Wire UId="103">
+      <OpenCon UId="68" />
+      <NameCon UId="56" Name="UserMode08Request" />
+    </Wire>
+    <Wire UId="104">
+      <OpenCon UId="69" />
+      <NameCon UId="56" Name="ResetCmdRequest" />
+    </Wire>
+    <Wire UId="105">
+      <OpenCon UId="70" />
+      <NameCon UId="56" Name="StartCmdRequest" />
+    </Wire>
+    <Wire UId="106">
+      <OpenCon UId="71" />
+      <NameCon UId="56" Name="StopCmdRequest" />
+    </Wire>
+    <Wire UId="107">
+      <OpenCon UId="72" />
+      <NameCon UId="56" Name="HoldCmdRequest" />
+    </Wire>
+    <Wire UId="108">
+      <OpenCon UId="73" />
+      <NameCon UId="56" Name="UnholdCmdRequest" />
+    </Wire>
+    <Wire UId="109">
+      <OpenCon UId="74" />
+      <NameCon UId="56" Name="SuspendCmdRequest" />
+    </Wire>
+    <Wire UId="110">
+      <OpenCon UId="75" />
+      <NameCon UId="56" Name="UnsuspendCmdRequest" />
+    </Wire>
+    <Wire UId="111">
+      <OpenCon UId="76" />
+      <NameCon UId="56" Name="AbortCmdRequest" />
+    </Wire>
+    <Wire UId="112">
+      <OpenCon UId="77" />
+      <NameCon UId="56" Name="ClearCmdRequest" />
+    </Wire>
+    <Wire UId="113">
+      <OpenCon UId="78" />
+      <NameCon UId="56" Name="CompleteCmdRequest" />
+    </Wire>
+    <Wire UId="114">
+      <IdentCon UId="26" />
+      <NameCon UId="56" Name="SC" />
+    </Wire>
+    <Wire UId="115">
+      <IdentCon UId="27" />
+      <NameCon UId="56" Name="configuration" />
+    </Wire>
+    <Wire UId="116">
+      <NameCon UId="56" Name="UnitModeCurrent" />
+      <IdentCon UId="28" />
+    </Wire>
+    <Wire UId="117">
+      <NameCon UId="56" Name="UnitModeRequested" />
+      <IdentCon UId="29" />
+    </Wire>
+    <Wire UId="118">
+      <NameCon UId="56" Name="UnitModeChangeInProcess" />
+      <IdentCon UId="30" />
+    </Wire>
+    <Wire UId="119">
+      <NameCon UId="56" Name="StateCurrent" />
+      <IdentCon UId="31" />
+    </Wire>
+    <Wire UId="120">
+      <NameCon UId="56" Name="StateRequested" />
+      <IdentCon UId="32" />
+    </Wire>
+    <Wire UId="121">
+      <NameCon UId="56" Name="StateChangeInProcess" />
+      <IdentCon UId="33" />
+    </Wire>
+    <Wire UId="122">
+      <NameCon UId="56" Name="ProductionModeActive" />
+      <IdentCon UId="34" />
+    </Wire>
+    <Wire UId="123">
+      <NameCon UId="56" Name="MaintenanceModeActive" />
+      <IdentCon UId="35" />
+    </Wire>
+    <Wire UId="124">
+      <NameCon UId="56" Name="ManualModeActive" />
+      <IdentCon UId="36" />
+    </Wire>
+    <Wire UId="125">
+      <NameCon UId="56" Name="UserMode01Active" />
+      <OpenCon UId="79" />
+    </Wire>
+    <Wire UId="126">
+      <NameCon UId="56" Name="UserMode02Active" />
+      <OpenCon UId="80" />
+    </Wire>
+    <Wire UId="127">
+      <NameCon UId="56" Name="UserMode03Active" />
+      <OpenCon UId="81" />
+    </Wire>
+    <Wire UId="128">
+      <NameCon UId="56" Name="UserMode04Active" />
+      <OpenCon UId="82" />
+    </Wire>
+    <Wire UId="129">
+      <NameCon UId="56" Name="UserMode05Active" />
+      <OpenCon UId="83" />
+    </Wire>
+    <Wire UId="130">
+      <NameCon UId="56" Name="UserMode06Active" />
+      <OpenCon UId="84" />
+    </Wire>
+    <Wire UId="131">
+      <NameCon UId="56" Name="UserMode07Active" />
+      <OpenCon UId="85" />
+    </Wire>
+    <Wire UId="132">
+      <NameCon UId="56" Name="UserMode08Active" />
+      <OpenCon UId="86" />
+    </Wire>
+    <Wire UId="133">
+      <NameCon UId="56" Name="ClearingStateActive" />
+      <IdentCon UId="37" />
+    </Wire>
+    <Wire UId="134">
+      <NameCon UId="56" Name="StoppedStateActive" />
+      <IdentCon UId="38" />
+    </Wire>
+    <Wire UId="135">
+      <NameCon UId="56" Name="StartingStateActive" />
+      <IdentCon UId="39" />
+    </Wire>
+    <Wire UId="136">
+      <NameCon UId="56" Name="IdleStateActive" />
+      <IdentCon UId="40" />
+    </Wire>
+    <Wire UId="137">
+      <NameCon UId="56" Name="SuspendedStateActive" />
+      <IdentCon UId="41" />
+    </Wire>
+    <Wire UId="138">
+      <NameCon UId="56" Name="ExecuteStateActive" />
+      <IdentCon UId="42" />
+    </Wire>
+    <Wire UId="139">
+      <NameCon UId="56" Name="StoppingStateActive" />
+      <IdentCon UId="43" />
+    </Wire>
+    <Wire UId="140">
+      <NameCon UId="56" Name="AbortingStateActive" />
+      <IdentCon UId="44" />
+    </Wire>
+    <Wire UId="141">
+      <NameCon UId="56" Name="AbortedStateActive" />
+      <IdentCon UId="45" />
+    </Wire>
+    <Wire UId="142">
+      <NameCon UId="56" Name="HoldingStateActive" />
+      <IdentCon UId="46" />
+    </Wire>
+    <Wire UId="143">
+      <NameCon UId="56" Name="HeldStateActive" />
+      <IdentCon UId="47" />
+    </Wire>
+    <Wire UId="144">
+      <NameCon UId="56" Name="UnholdingStateActive" />
+      <IdentCon UId="48" />
+    </Wire>
+    <Wire UId="145">
+      <NameCon UId="56" Name="SuspendingStateActive" />
+      <IdentCon UId="49" />
+    </Wire>
+    <Wire UId="146">
+      <NameCon UId="56" Name="UnsuspendingStateActive" />
+      <IdentCon UId="50" />
+    </Wire>
+    <Wire UId="147">
+      <NameCon UId="56" Name="ResettingStateActive" />
+      <IdentCon UId="51" />
+    </Wire>
+    <Wire UId="148">
+      <NameCon UId="56" Name="CompletingStateActive" />
+      <IdentCon UId="52" />
+    </Wire>
+    <Wire UId="149">
+      <NameCon UId="56" Name="CompleteStateActive" />
+      <IdentCon UId="53" />
+    </Wire>
+    <Wire UId="150">
+      <NameCon UId="56" Name="StatesDisabled" />
+      <IdentCon UId="54" />
+    </Wire>
+    <Wire UId="151">
+      <NameCon UId="56" Name="diagnostics" />
+      <IdentCon UId="55" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="12" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="13" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="17" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="18" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>Call FB OMAC</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Call FB OMAC</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="1C" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="ResetTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="ModeCurrentTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="ModeCumulativeTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="26">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="StateCurrentTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="27">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="StateCumulativeTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="28">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="actualTimeCurrentMode" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="29">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="cumulativeTimeCurrentMode" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="30">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="actualTimeCurrentStates" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="31">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="cumulativeTimeCurrentStates" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="32">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="AccTimeSinceReset" />
+      </Symbol>
+    </Access>
+    <Call UId="33">
+      <CallInfo Name="LPMLV30_UnitModeStateTimes" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="34">
+          <Component Name="instLPMLV30_UnitModeStateTimes" />
+        </Instance>
+        <Parameter Name="UnitModeCurrent" Section="Input" Type="DInt" />
+        <Parameter Name="StateCurrent" Section="Input" Type="DInt" />
+        <Parameter Name="resetTimes" Section="Input" Type="Bool" />
+        <Parameter Name="ModeCurrentTime" Section="Output" Type="Array[0..#LPMLV30_MODES_UPPER_LIM] of DInt" />
+        <Parameter Name="ModeCumulativeTime" Section="Output" Type="Array[0..#LPMLV30_MODES_UPPER_LIM] of DInt" />
+        <Parameter Name="StateCurrentTime" Section="Output" Type="Array[0..#LPMLV30_MODES_UPPER_LIM, 0..#LPMLV30_STATES_UPPER_LIM] of DInt" />
+        <Parameter Name="StateCumulativeTime" Section="Output" Type="Array[0..#LPMLV30_MODES_UPPER_LIM, 0..#LPMLV30_STATES_UPPER_LIM] of DInt" />
+        <Parameter Name="actualTimeCurrentMode" Section="Output" Type="DInt" />
+        <Parameter Name="cumulativeTimeCurrentMode" Section="Output" Type="DInt" />
+        <Parameter Name="actualTimeCurrentStates" Section="Output" Type="Array[0..#LPMLV30_STATES_UPPER_LIM] of DInt" />
+        <Parameter Name="cumulativeTimeCurrentStates" Section="Output" Type="Array[0..#LPMLV30_STATES_UPPER_LIM] of DInt" />
+        <Parameter Name="AccTimeSinceReset" Section="Output" Type="DInt" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="35">
+      <Powerrail />
+      <NameCon UId="33" Name="en" />
+    </Wire>
+    <Wire UId="36">
+      <IdentCon UId="21" />
+      <NameCon UId="33" Name="UnitModeCurrent" />
+    </Wire>
+    <Wire UId="37">
+      <IdentCon UId="22" />
+      <NameCon UId="33" Name="StateCurrent" />
+    </Wire>
+    <Wire UId="38">
+      <IdentCon UId="23" />
+      <NameCon UId="33" Name="resetTimes" />
+    </Wire>
+    <Wire UId="39">
+      <NameCon UId="33" Name="ModeCurrentTime" />
+      <IdentCon UId="24" />
+    </Wire>
+    <Wire UId="40">
+      <NameCon UId="33" Name="ModeCumulativeTime" />
+      <IdentCon UId="25" />
+    </Wire>
+    <Wire UId="41">
+      <NameCon UId="33" Name="StateCurrentTime" />
+      <IdentCon UId="26" />
+    </Wire>
+    <Wire UId="42">
+      <NameCon UId="33" Name="StateCumulativeTime" />
+      <IdentCon UId="27" />
+    </Wire>
+    <Wire UId="43">
+      <NameCon UId="33" Name="actualTimeCurrentMode" />
+      <IdentCon UId="28" />
+    </Wire>
+    <Wire UId="44">
+      <NameCon UId="33" Name="cumulativeTimeCurrentMode" />
+      <IdentCon UId="29" />
+    </Wire>
+    <Wire UId="45">
+      <NameCon UId="33" Name="actualTimeCurrentStates" />
+      <IdentCon UId="30" />
+    </Wire>
+    <Wire UId="46">
+      <NameCon UId="33" Name="cumulativeTimeCurrentStates" />
+      <IdentCon UId="31" />
+    </Wire>
+    <Wire UId="47">
+      <NameCon UId="33" Name="AccTimeSinceReset" />
+      <IdentCon UId="32" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="1D" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="20" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="21" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="22" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>Call FB Time Counter</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Call FB Time Counter</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="25" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="27" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="StateCurrent" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="ConfigurationLanguage" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="namesConfiguration" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="unitModeCurrentName" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="26">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="stateCurrentName" />
+      </Symbol>
+    </Access>
+    <Call UId="27">
+      <CallInfo Name="LPMLV30_GetUnitModeStateNamesAsString" BlockType="FC">
+        <Parameter Name="UnitModeCurrent" Section="Input" Type="DInt" />
+        <Parameter Name="StateCurrent" Section="Input" Type="DInt" />
+        <Parameter Name="language" Section="Input" Type="Int" />
+        <Parameter Name="namesConfiguration" Section="Input" Type="&quot;typeLPMLV30_NamesConfiguration&quot;" />
+        <Parameter Name="unitModeCurrentName" Section="Output" Type="String" />
+        <Parameter Name="stateCurrentName" Section="Output" Type="String" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="28">
+      <Powerrail />
+      <NameCon UId="27" Name="en" />
+    </Wire>
+    <Wire UId="29">
+      <IdentCon UId="21" />
+      <NameCon UId="27" Name="UnitModeCurrent" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="22" />
+      <NameCon UId="27" Name="StateCurrent" />
+    </Wire>
+    <Wire UId="31">
+      <IdentCon UId="23" />
+      <NameCon UId="27" Name="language" />
+    </Wire>
+    <Wire UId="32">
+      <IdentCon UId="24" />
+      <NameCon UId="27" Name="namesConfiguration" />
+    </Wire>
+    <Wire UId="33">
+      <NameCon UId="27" Name="unitModeCurrentName" />
+      <IdentCon UId="25" />
+    </Wire>
+    <Wire UId="34">
+      <NameCon UId="27" Name="stateCurrentName" />
+      <IdentCon UId="26" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="28" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="29" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2D" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>Call FC Names Mode&amp;State in STRING</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Call FC Names Mode&amp;State in STRING</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="In" />
+        <Component Name="configuration" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="ModeCumulativeTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="UnitModeStateTime" />
+        <Component Name="StateCumulativeTime" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="OmacInterface" />
+        <Component Name="Out" />
+        <Component Name="CounterCumulativeTime" />
+      </Symbol>
+    </Access>
+    <Call UId="25">
+      <CallInfo Name="LOmacApcFr_CumulativeTimeSplitDINT" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="26">
+          <Component Name="instLOmacApcFr_CumulativeTimeSplitDINT" />
+        </Instance>
+        <Parameter Name="ConfigurationOmac" Section="Input" Type="&quot;typeLPMLV30_Configuration&quot;" />
+        <Parameter Name="ModeCumulativeTime" Section="Input" Type="Array[0..&quot;LPMLV30_MODES_UPPER_LIM&quot;] of DInt" />
+        <Parameter Name="StateCumulativeTime" Section="Input" Type="Array[0..&quot;LPMLV30_MODES_UPPER_LIM&quot;, 0..&quot;LPMLV30_STATES_UPPER_LIM&quot;] of DInt" />
+        <Parameter Name="CounterCumulativeTime" Section="Output" Type="Array[0..&quot;LPMLV30_MODES_UPPER_LIM&quot;] of &quot;LMOmacApcFr_TypeCounterCumulativeTime&quot;" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="27">
+      <Powerrail />
+      <NameCon UId="25" Name="en" />
+    </Wire>
+    <Wire UId="28">
+      <IdentCon UId="21" />
+      <NameCon UId="25" Name="ConfigurationOmac" />
+    </Wire>
+    <Wire UId="29">
+      <IdentCon UId="22" />
+      <NameCon UId="25" Name="ModeCumulativeTime" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="23" />
+      <NameCon UId="25" Name="StateCumulativeTime" />
+    </Wire>
+    <Wire UId="31">
+      <NameCon UId="25" Name="CounterCumulativeTime" />
+      <IdentCon UId="24" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="37" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="38" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>Cumulative counter time</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Cumulative counter time</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="3D" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="3E" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="40" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="41" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

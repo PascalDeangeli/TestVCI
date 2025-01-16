@@ -1,0 +1,97 @@
+﻿FUNCTION "LAxisCtrlApcFr_IsAxisReady" : Void
+TITLE = LApcFr_IsAxisReady
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : LApcFr
+VERSION : 1.0
+   VAR_INPUT 
+      axis : DB_ANY;   //  Axis technology object
+      "S120 Infeed in Operation" : Bool;   // (For booksize drive) TRUE: infeed in operation
+      "STO or SOS active" : Bool;   // FALSE: both STO and SOS signal are TRUE (no active stop request)
+   END_VAR
+
+   VAR_OUTPUT 
+      dataValid : Bool;   // TRUE: outputs valid. Otherwise wrong axis datatype
+      axisReady : Bool;   // Axis ready
+      driveInOperation : Bool;   // TRUE: Drive is running
+      restartInProgress : Bool;   // TO Restarting
+      inSimulation : Bool;   // TRUE: Axis is in simulation
+      encoderValid : Bool;   // TRUE: Encoder value is valid
+      communicationOk : Bool;   // TRUE: Communication with drive is established
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Check conditions for axis to be operated
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2021.04.23  ---   FGe     Initial bloc Spitted to sub depending on TO type
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===========================================================================================
+	END_REGION
+	
+	
+	CASE TypeOfDB(#axis) OF
+	    
+	  TO_SpeedAxis:
+	    "LAxisCtrlApcFr_IsSpeedAxisReady"(axis                       := #axis,
+	                              "S120 Infeed in Operation" := #"S120 Infeed in Operation",
+	                              "STO or SOS active"        := #"STO or SOS active",
+	                              axisReady                  => #axisReady,
+	                              restartInProgress          => #restartInProgress,
+	                              inSimulation               => #inSimulation,
+	                              driveInOperation           => #driveInOperation,
+	                              encoderValid               => #encoderValid,
+	                              communicationOk            => #communicationOk);
+	    #dataValid := TRUE;
+	    RETURN;
+	    
+	  TO_PositioningAxis:
+	    "LAxisCtrlApcFr_IsPosAxisReady"(axis                       := #axis,
+	                            "S120 Infeed in Operation" := #"S120 Infeed in Operation",
+	                            "STO or SOS active"        := #"STO or SOS active",
+	                            axisReady                  => #axisReady,
+	                            restartInProgress          => #restartInProgress,
+	                            inSimulation               => #inSimulation,
+	                            driveInOperation           => #driveInOperation,
+	                            encoderValid               => #encoderValid,
+	                            communicationOk            => #communicationOk);
+	    #dataValid := TRUE;
+	    RETURN;
+	    
+	  TO_SynchronousAxis:
+	    "LAxisCtrlApcFr_IsSyncAxisReady"(axis                       := #axis,
+	                             "S120 Infeed in Operation" := #"S120 Infeed in Operation",
+	                             "STO or SOS active"        := #"STO or SOS active",
+	                             axisReady                  => #axisReady,
+	                             restartInProgress          => #restartInProgress,
+	                             inSimulation               => #inSimulation,
+	                             driveInOperation           => #driveInOperation,
+	                             encoderValid               => #encoderValid,
+	                             communicationOk            => #communicationOk);
+	    #dataValid := TRUE;
+	    RETURN;
+	    
+	  ELSE
+	    #dataValid := FALSE;
+	    #restartInProgress :=
+	    #inSimulation :=
+	    #driveInOperation :=
+	    #encoderValid :=
+	    #communicationOk :=
+	    #axisReady :=
+	    FALSE;
+	    RETURN;
+	END_CASE;
+END_FUNCTION
+

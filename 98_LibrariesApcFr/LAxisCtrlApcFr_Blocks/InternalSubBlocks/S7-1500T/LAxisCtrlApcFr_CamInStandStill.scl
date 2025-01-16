@@ -1,0 +1,360 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_CamInStandStill"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      master : DB_ANY;
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      cam { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      camInStandStillConfig { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "LAxisCtrlApcFr_typeCamInStandStill";
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      commandAborted : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      errorId { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+   END_VAR
+
+   VAR 
+      execute_R_TRIG {InstructionName := 'R_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : R_TRIG;
+      step { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      statSlavePosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      statMasterPosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      instMC_MOVEABSOLUTE {InstructionName := 'MC_MOVEABSOLUTE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEABSOLUTE;
+      statPosAbsoluteConfig { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrl_typePosAbsolute";
+      instLAxisCtrl_UnpubMC_CamIn { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubMC_CamIn";
+      timeOut_Positioning {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      timeOut_Synchronizing {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      instGetCamStatusWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubGetCamStatusWord";
+      statErrorConfig { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statErrorConfigStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubMC_GetCamFollowingValue";
+      instLaxisCtrlApcFr_UnpubMC_Interpolate { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubMC_Interpolate";
+      statCommandAborted : Bool;
+      statBusy : Bool;
+      statError : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      tempErrorMC_Interpolate : Bool;
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+      tempRefSyncAxis {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : REF_TO TO_SynchronousAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+   VAR CONSTANT 
+      S00_WAIT_FOR_PROCEDURE : UInt := 0;
+      S01_INTERPOLATE_CAM : UInt := 1;
+      S10_GET_SLAVE_POSITION : UInt := 10;
+      S20_LAUNCH_POSITIONING : UInt := 20;
+      S30_WAIT_POSITIONING_DONE : UInt := 30;
+      S40_LAUNCH_CAMIN : UInt := 40;
+      S50_PROCEDURE_DONE : UInt := 50;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	    //===================================================================================================
+	    // SIEMENS SAS    RC-FR DI FA APC
+	    //---------------------------------------------------------------------------------------------------
+	    // Restrictions:  T-CPU
+	    // Requirements:  ---
+	    //---------------------------------------------------------------------------------------------------
+	    // Description:   Homing absolute or incremental encoder on fixed stop with torque limitation in Nm
+	    //                and possibility to home before or after retracting axis after fixed stop detection
+	    //---------------------------------------------------------------------------------------------------
+	    // Change log table:
+	    // Version  Date        TIA   Expert  Changes applied
+	    // 01.00    2018.06.08  ---   RTo     First released version
+	    // 05.00    2024.09.11  V19   SDa     Adaptation with DBAny type #axis and SCL language
+	    //---------------------------------------------------------------------------------------------------
+	    // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	    // e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	    //===================================================================================================
+	END_REGION
+	
+	#tempRefPosAxis ?= #master;
+	#tempRefSyncAxis ?= #axis;
+	
+	IF (#tempRefPosAxis <> NULL) AND (#tempRefSyncAxis <> NULL) THEN
+	    // Master Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    // Slave Axis type is TO_SynchronousAxis
+	    
+	    REGION LAUNCH SEQUENCE
+	        #execute_R_TRIG(CLK := #execute);
+	    END_REGION
+	    
+	    REGION INITIALISATION
+	        IF NOT #execute AND (#step = #S50_PROCEDURE_DONE OR #statError) THEN
+	            #step := #S00_WAIT_FOR_PROCEDURE;
+	            #statErrorConfig := FALSE;
+	            #instMC_MOVEABSOLUTE.Execute := false;
+	            #statCommandAborted := FALSE;
+	        END_IF;
+	    END_REGION
+	    
+	    REGION GET STATUS CAM
+	        IF #cam <> 0 THEN
+	            #instGetCamStatusWord(Cam := #cam);
+	        END_IF;
+	    END_REGION
+	    
+	    REGION TIME OUT
+	        #timeOut_Positioning(IN := #step = #S30_WAIT_POSITIONING_DONE,
+	                             PT := #camInStandStillConfig.positioningTimeOut);
+	        
+	        #timeOut_Synchronizing(IN := #step = #S40_LAUNCH_CAMIN,
+	                               PT := T#1s);
+	    END_REGION
+	    
+	    REGION SEQUENCE
+	        CASE #step OF
+	            #S00_WAIT_FOR_PROCEDURE:
+	                IF #execute_R_TRIG.Q THEN
+	                    
+	                    // Get master position
+	                    #statMasterPosition := (#tempRefPosAxis^.ActualPosition / #camInStandStillConfig.masterScaling) - #camInStandStillConfig.masterOffset;
+	                    
+	                    // Case master is modulo
+	                    IF #tempRefPosAxis^.Modulo.Enable THEN
+	                        #statMasterPosition := FRAC(#statMasterPosition / #tempRefPosAxis^.Modulo.Length) * #tempRefPosAxis^.Modulo.Length;
+	                        IF #statMasterPosition < #tempRefPosAxis^.Modulo.StartValue THEN
+	                            #statMasterPosition := #statMasterPosition + #tempRefPosAxis^.Modulo.Length;
+	                        END_IF;
+	                    END_IF;
+	                    
+	                    //Check camInStandStill configuration
+	                    IF #cam = 0 THEN
+	                        // No cam selected
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_CAM_EMPTY";
+	                    ELSIF #camInStandStillConfig.velocity <= 0 AND #camInStandStillConfig.velocity <> -1 THEN
+	                        // Positioning velocity incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_VELOCITY_AT_ZERO";
+	                    ELSIF #camInStandStillConfig.acceleration <= 0 AND #camInStandStillConfig.acceleration <> -1 THEN
+	                        // Positioning acceleration incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_ACCELERATION_OR_DECELERATION_AT_ZERO";
+	                    ELSIF #camInStandStillConfig.deceleration <= 0 AND #camInStandStillConfig.deceleration <> -1 THEN
+	                        // Positioning deceleration incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_ACCELERATION_OR_DECELERATION_AT_ZERO";
+	                    ELSIF #camInStandStillConfig.jerk <= 0 AND #camInStandStillConfig.jerk <> -1 THEN
+	                        // Positioning jerk incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_JERK_AT_ZERO";
+	                    ELSIF #camInStandStillConfig.tolerance < 0 THEN
+	                        // Positioning tolerance incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_TOLERANCE_AT_ZERO_OR_NEGATIVE";
+	                    ELSIF #camInStandStillConfig.positioningTimeOut = T#0s THEN
+	                        // Positioning TimeOut incorrect
+	                        #statErrorConfig := TRUE;
+	                        #statErrorConfigStatus := "ERR_CIS_TOLERANCE_TIME_POSITIONING_AT_ZERO";
+	                    END_IF;
+	                    
+	                    IF #statErrorConfig THEN
+	                        ;
+	                    ELSIF #instGetCamStatusWord.interpolated THEN
+	                        #step := #S10_GET_SLAVE_POSITION;
+	                    ELSE
+	                        #step := #S01_INTERPOLATE_CAM;
+	                    END_IF;
+	                END_IF;
+	                
+	            #S01_INTERPOLATE_CAM:
+	                // Interpolate the cam
+	                IF #instGetCamStatusWord.interpolated THEN
+	                    #step := #S10_GET_SLAVE_POSITION;
+	                END_IF;
+	                
+	                
+	            #S10_GET_SLAVE_POSITION:
+	                IF #instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.instMC.#Done THEN
+	                    // Get target position for slave
+	                    #statPosAbsoluteConfig.position := (#statSlavePosition * #camInStandStillConfig.slaveScaling) + #camInStandStillConfig.slaveOffset;
+	                    
+	                    // Case slave is modulo
+	                    IF #tempRefSyncAxis^.Modulo.Enable THEN
+	                        #statPosAbsoluteConfig.position := FRAC(#statPosAbsoluteConfig.position / #tempRefSyncAxis^.Modulo.Length) * #tempRefSyncAxis^.Modulo.Length;
+	                        IF #statPosAbsoluteConfig.position < #tempRefSyncAxis^.Modulo.StartValue THEN
+	                            #statPosAbsoluteConfig.position := #statPosAbsoluteConfig.position + #tempRefSyncAxis^.Modulo.Length;
+	                        END_IF;
+	                    END_IF;
+	                    
+	                    #step := #S20_LAUNCH_POSITIONING;
+	                END_IF;
+	                
+	            #S20_LAUNCH_POSITIONING:
+	                
+	                // Positioning dynamique
+	                #statPosAbsoluteConfig.velocity := #camInStandStillConfig.velocity;
+	                #statPosAbsoluteConfig.acceleration := #camInStandStillConfig.acceleration;
+	                #statPosAbsoluteConfig.deceleration := #camInStandStillConfig.deceleration;
+	                #statPosAbsoluteConfig.jerk := #camInStandStillConfig.jerk;
+	                
+	                // Case slave in position tolerance
+	                IF ABS(#statPosAbsoluteConfig.position - #tempRefSyncAxis^.ActualPosition) < #camInStandStillConfig.tolerance THEN
+	                    #statPosAbsoluteConfig.direction := 3; // Shortest way
+	                ELSE
+	                    #statPosAbsoluteConfig.direction := #camInStandStillConfig.direction; // User choice
+	                END_IF;
+	                
+	                #instMC_MOVEABSOLUTE.Execute := true;
+	                
+	                // Positioning launched
+	                IF #instMC_MOVEABSOLUTE.Busy THEN //positioningCommand
+	                    #instMC_MOVEABSOLUTE.Execute := false;
+	                    #step := #S30_WAIT_POSITIONING_DONE;
+	                END_IF;
+	                
+	            #S30_WAIT_POSITIONING_DONE:
+	                // Wait positining done
+	                IF #instMC_MOVEABSOLUTE.Done THEN //done
+	                    #step := #S40_LAUNCH_CAMIN;
+	                ELSIF
+	                    #instMC_MOVEABSOLUTE.CommandAborted THEN
+	                    #statCommandAborted := #instMC_MOVEABSOLUTE.CommandAborted;
+	                    #step := #S50_PROCEDURE_DONE;
+	                END_IF;
+	                
+	            #S40_LAUNCH_CAMIN:
+	                // Synchronizing the cam
+	                IF #instLAxisCtrl_UnpubMC_CamIn.InSync THEN
+	                    #step := #S50_PROCEDURE_DONE;
+	                END_IF;
+	                
+	        END_CASE;
+	    END_REGION
+	    
+	    REGION INTERPOLATE
+	        IF #cam <> 0 AND #statBusy THEN
+	            #instLaxisCtrlApcFr_UnpubMC_Interpolate(cam := #cam,
+	                                                    execute := (#step = #S01_INTERPOLATE_CAM),
+	                                                    error => #tempErrorMC_Interpolate);
+	        END_IF;
+	    END_REGION
+	    
+	    REGION GET SLAVE POSITION VALUE ON CAM
+	        IF #statBusy THEN
+	            #instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue(cam := #cam,
+	                                                             execute := (#step = #S10_GET_SLAVE_POSITION),
+	                                                             leadingValue := #statMasterPosition,
+	                                                             value => #statSlavePosition);
+	        END_IF;
+	    END_REGION
+	    
+	    REGION POSITIONING SLAVE
+	        IF #statBusy THEN
+	            #instMC_MOVEABSOLUTE(Axis := #tempRefSyncAxis^,
+	                                 Execute := (#step = #S20_LAUNCH_POSITIONING) AND #instMC_MOVEABSOLUTE.Execute,
+	                                 Position := #statPosAbsoluteConfig.position,
+	                                 Velocity := #statPosAbsoluteConfig.velocity,
+	                                 Acceleration := #statPosAbsoluteConfig.acceleration,
+	                                 Deceleration := #statPosAbsoluteConfig.deceleration,
+	                                 Jerk := #statPosAbsoluteConfig.jerk,
+	                                 Direction := #statPosAbsoluteConfig.direction);
+	        END_IF;
+	    END_REGION
+	    
+	    REGION SYNCHRONIZING SLAVE
+	        IF #statBusy THEN
+	            #instLAxisCtrl_UnpubMC_CamIn(Master := #tempRefPosAxis^,
+	                                         Slave := #tempRefSyncAxis^,
+	                                         Cam := #cam,
+	                                         Execute := (#step = #S40_LAUNCH_CAMIN),
+	                                         MasterSyncPosition := #statMasterPosition,
+	                                         SyncProfileReference := 2,
+	                                         MasterStartDistance := 1.0,
+	                                         ApplicationMode := #camInStandStillConfig.applicationMode);
+	        END_IF;
+	    END_REGION
+	    
+	    REGION MANAGE OUTPUT
+	        #statError := #tempRefSyncAxis^.StatusWord.%X1
+	        OR #instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.error
+	        OR #instMC_MOVEABSOLUTE.Error
+	        OR #instLAxisCtrl_UnpubMC_CamIn.Error
+	        OR #timeOut_Positioning.Q
+	        OR #timeOut_Synchronizing.Q
+	        OR #instLaxisCtrlApcFr_UnpubMC_Interpolate.error
+	        OR #statErrorConfig;
+	        #error := #statError;
+	        
+	        #done := #step = #S50_PROCEDURE_DONE;
+	        
+	        #statBusy := #step <> #S00_WAIT_FOR_PROCEDURE AND #step <> #S50_PROCEDURE_DONE;
+	        #busy := #statBusy;
+	        
+	        IF #tempRefSyncAxis^.StatusWord.%X1 THEN
+	            // Axis in error
+	            #status := "ERR_CIS_AXIS_IN_ERROR";
+	            #errorId := "STATUS_FINISHED_NOERROR";
+	        ELSIF #instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.error THEN
+	            // function MC_GETCAMFOLLOWINGVALUE in error
+	            #status := "ERR_CIS_GETCAMFOLLOWINGVALUE";
+	            #errorId := #instLaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.errorID;
+	        ELSIF #instMC_MOVEABSOLUTE.Error THEN
+	            // function MC_MOVEABSOLUTE in error    
+	            #status := "ERR_CIS_GETCAMFOLLOWINGVALUE";
+	            #errorId := #instMC_MOVEABSOLUTE.ErrorId;
+	        ELSIF #instLAxisCtrl_UnpubMC_CamIn.Error THEN
+	            // function MC_CAMIN in error    
+	            #status := "ERR_CIS_CAMIN";
+	            #errorId := #instLAxisCtrl_UnpubMC_CamIn.ErrorID;
+	        ELSIF #timeOut_Positioning.Q THEN
+	            // time out for positioning
+	            #status := "ERR_CIS_TIMEOUT_POSITIONING";
+	            #errorId := "STATUS_FINISHED_NOERROR";
+	        ELSIF #timeOut_Synchronizing.Q THEN
+	            // time out for synchronizing
+	            #status := "ERR_CIS_TIMEOUT_SYNCHRONIZING";
+	            #errorId := "STATUS_FINISHED_NOERROR";
+	        ELSIF #instLaxisCtrlApcFr_UnpubMC_Interpolate.error THEN
+	            // function MC_INTERPOLATE in error
+	            #status := "ERR_CIS_INTERPOLATE";
+	            #errorId := #instLaxisCtrlApcFr_UnpubMC_Interpolate.#errorID;
+	        ELSIF #statErrorConfig THEN
+	            // Configuration error
+	            #status := #statErrorConfigStatus;
+	            #errorId := "STATUS_FINISHED_NOERROR";
+	        ELSE
+	            // No error
+	            IF #statCommandAborted THEN
+	                // MC_ABSOLUTE aborted
+	                #status := "STATUS_EXECUTION_ABORTED";
+	            ELSE
+	                // No error
+	                #status := "STATUS_FINISHED_NOERROR";
+	            END_IF;
+	            #commandAborted := #statCommandAborted;
+	            #errorId := "STATUS_FINISHED_NOERROR";
+	        END_IF;
+	    END_REGION
+	    
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #statError := FALSE;
+	        #statBusy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #errorId := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #statError := FALSE;
+	        #statBusy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #errorId := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

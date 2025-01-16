@@ -1,0 +1,401 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_ActDeactLimitSwitches"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : SDA
+FAMILY : APCFR
+VERSION : 1.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge starts action once
+      activating { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE : activate FALSE : desactivate
+      limitSelection { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;   // 0 = BOTH 1=SOFT 2=HARD
+      negSoftLimitSwitchPosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := -1000000000000.0;   // Position of negative SW limit switch
+      posSoftLimitSwitchPosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := 1000000000000.0;   // Position of positiveSW limit switch
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Commanded action has been completed successfully
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: FB is not finished and new output values can be expected
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge informs that an error occurred during the execution of
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_NO_CALL";   // Current status of FB
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "ERR_NO_ERROR";
+      errorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 0;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      instMC_WriteParameter {InstructionName := 'MC_WRITEPARAMETER'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_WRITEPARAMETER;
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      statConditionsSoftOK { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statConditionsHardOk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Activate or desactivate soft limit switch
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2020.07.24  V16   SDA     First released version 
+	  // 01.01    2021.06.01  V16   SDA     Name changed 
+	  // 01.02    2022.04.20  V17   FGe     Moved constants to global definition
+	  // 05.00    2024.09.11  V19   SDa     Adaptation with DBAny type #axis
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	  //===========================================================================================
+	END_REGION
+	
+	REGION INITIALISATION
+	    #tempRefPosAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefPosAxis <> NULL) THEN
+	    // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        //------------------------------------------------------------------------------------------
+	        // TODO: Insert here instances of MC instructions.
+	        // inputs / outputs to be set / used in main section
+	        
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #instMC_WriteParameter(Axis := #tempRefPosAxis^,
+	                               ParameterNumber := 1000,
+	                               Value := #activating);
+	        
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION CALL HANDLING
+	        
+	        //Check if FB is triggered
+	        IF #execute AND NOT #statExecuteOld
+	            // if FB should finish current job before new job can be started with rising edge of execute,
+	            // you must remove the first comment character on next line
+	            AND NOT #statBusy
+	        THEN
+	            REGION FB TRIG (FIRST CALL)
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Commands
+	                #instMC_WriteParameter.Execute := FALSE;
+	                // State
+	                #statNextStep := 10;
+	                //-----------------------------------------------------------------------------------
+	                
+	                //Functionality is busy
+	                #statDone := FALSE;
+	                #statBusy := TRUE;
+	                #statCommandAborted := FALSE;
+	                //Reset diagnostic
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statErrorValue := 0;
+	                // Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_FIRST_CALL";
+	                #subStatus := #statSubErrorID;
+	                #errorValue := #statErrorValue;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently inactive
+	        ELSIF NOT #execute AND NOT #statBusy AND NOT #statExecuteOld
+	        THEN
+	            REGION NO CALL
+	                //Outputs are reset with falling edge of enable input
+	                //Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_NO_CALL";
+	                #subStatus := "ERR_NO_ERROR";
+	                #errorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently executed and not finished
+	        ELSIF #statBusy OR #execute
+	        THEN
+	            REGION BUSY
+	                #statExecuteOld := #execute;
+	            END_REGION
+	            //FB finished job
+	        ELSE
+	            REGION LAST CALL
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                //Commands
+	                #instMC_WriteParameter.Execute := FALSE;
+	                // State
+	                #statNextStep := 0;
+	                //-----------------------------------------------------------------------------------
+	                #statDone := FALSE;
+	                #statBusy := FALSE;
+	                #statCommandAborted := FALSE;
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statErrorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	        END_IF;
+	    END_REGION
+	    
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statAborted   Execution is aborted by an external command
+	        //  - statError:    Error happened in program
+	        //  - statStatus:   Identifier for current error
+	        //  - statSubStatus:Identifier for subcall error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - status, subStatus, aborted, busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //-----------------------------------------------------------------------------------
+	        
+	        REGION ACTIVATE DESACTIVATE LIMIT SWITCHES
+	            
+	            // update running step
+	            #statActualStep := #statNextStep;
+	            CASE #statActualStep OF
+	                    
+	                10: // Init values
+	                    REGION INITIALISATION                            
+	                        
+	                        // Save software limits status
+	                        //#statAxisStatus.boSWLimit := tempRefPosAxis^.PositionLimits_SW.Active;
+	                        #statConditionsHardOk := false;
+	                        #statConditionsSoftOK := false;
+	                        // Next step
+	                        #statNextStep := 20;
+	                    END_REGION
+	                    
+	                20: // Check Soft and hard limit switches conditions
+	                    REGION CHECK CONDITIONS
+	                        IF #activating THEN
+	                            // error hard limit
+	                            IF #limitSelection = "LAPCFR_ADLS_BOTH" OR #limitSelection = "LAPCFR_ADLS_HARD" THEN
+	                                IF #tempRefPosAxis^.PositionLimits_HW.MinSwitchAddress.AREA = 0 OR #tempRefPosAxis^.PositionLimits_HW.MaxSwitchAddress.AREA = 0 THEN
+	                                    #statErrorID := "ERR_ADLS_HARDLIMIT_NO_INPUT_DEFINED_IN_TO";
+	                                    #statNextStep := 900;
+	                                ELSE
+	                                    #statConditionsHardOk := true;
+	                                END_IF;
+	                            ELSIF #limitSelection = "LAPCFR_ADLS_SOFT" THEN
+	                                #statConditionsHardOk := true;
+	                            END_IF;
+	                            // error soft limit
+	                            IF #limitSelection = "LAPCFR_ADLS_BOTH" OR #limitSelection = "LAPCFR_ADLS_SOFT" THEN
+	                                IF #negSoftLimitSwitchPosition >= #posSoftLimitSwitchPosition THEN
+	                                    // negative position > positive position 
+	                                    #statErrorID := "ERR_ADLS_SOFTLIMIT_INF_>=_LIMIT_SUP";
+	                                    #statNextStep := 900;
+	                                ELSIF #tempRefPosAxis^.Modulo.Enable AND ((#negSoftLimitSwitchPosition < #tempRefPosAxis^.Modulo.StartValue) OR (#posSoftLimitSwitchPosition >= (#tempRefPosAxis^.Modulo.StartValue + #tempRefPosAxis^.Modulo.Length))) THEN
+	                                    // negative and positive position not in range modulo
+	                                    #statErrorID := "ERR_ADLS_SOFTLIMIT_VALUE_NOT_IN_MODULO_RANGE";
+	                                    #statNextStep := 900;
+	                                ELSE
+	                                    #statConditionsSoftOK := true;
+	                                END_IF;
+	                            ELSIF #limitSelection = "LAPCFR_ADLS_HARD" THEN
+	                                #statConditionsSoftOK := true;
+	                            END_IF;
+	                        END_IF;
+	                        
+	                        IF NOT #activating OR (#statConditionsSoftOK AND #statConditionsHardOk) THEN
+	                            // Next step
+	                            #statNextStep := 30;
+	                        END_IF;
+	                        
+	                    END_REGION
+	                    
+	                30: // Disable or enable Hardware and software limits
+	                    REGION ACTIVE OR DESACTIVE LIMITS SWITCHES
+	                        // Step timeout
+	                        #statStepTimeOut_PT := "LAPCFR_ADLS_WRITE_PARAMETER_TIMEOUT";
+	                        #statStepTimeOut_IN := TRUE;
+	                        
+	                        // limit soft
+	                        IF #limitSelection = "LAPCFR_ADLS_BOTH" OR #limitSelection = "LAPCFR_ADLS_SOFT" THEN //both and soft
+	                            #tempRefPosAxis^.PositionLimits_SW.Active := #activating;
+	                            #tempRefPosAxis^.PositionLimits_SW.MinPosition := #negSoftLimitSwitchPosition;
+	                            #tempRefPosAxis^.PositionLimits_SW.MaxPosition := #posSoftLimitSwitchPosition;
+	                        END_IF;
+	                        // limit hard
+	                        IF #tempRefPosAxis^.PositionLimits_HW.Active <> #activating AND (#limitSelection = "LAPCFR_ADLS_BOTH" OR #limitSelection = "LAPCFR_ADLS_HARD") THEN //both and hard
+	                            #instMC_WriteParameter.Execute := TRUE;
+	                        END_IF;
+	                        
+	                        IF #instMC_WriteParameter.Error THEN
+	                            // desactivating hardlimit error
+	                            #statErrorID := "ERR_ADLS_WRITEPARAMETER";
+	                            #statSubErrorID := #instMC_WriteParameter.ErrorId;
+	                            #instMC_WriteParameter.Execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instMC_WriteParameter.CommandAborted THEN
+	                            #statErrorID := "ERR_ADLS_COMMAND_ABORTED";
+	                            #statSubErrorID := #instMC_WriteParameter.ErrorId;
+	                            #instMC_WriteParameter.Execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF (#limitSelection = "LAPCFR_ADLS_SOFT" AND #tempRefPosAxis^.PositionLimits_SW.Active = #activating)
+	                            OR (#limitSelection = "LAPCFR_ADLS_HARD" AND #tempRefPosAxis^.PositionLimits_HW.Active = #activating)
+	                            OR (#limitSelection = "LAPCFR_ADLS_BOTH" AND #tempRefPosAxis^.PositionLimits_SW.Active = #activating AND #tempRefPosAxis^.PositionLimits_HW.Active = #activating) THEN
+	                            
+	                            #statStepTimeOut_IN := FALSE;
+	                            #instMC_WriteParameter.Execute := FALSE;
+	                            // Next step
+	                            #statNextStep := 120;
+	                            
+	                        ELSIF #instStepTimeOut.Q THEN
+	                            // write parameter timeout
+	                            #statErrorID := "ERR_ADLS_WRITEPARAMETER_TIMEOUT";
+	                            #instMC_WriteParameter.Execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 900;
+	                        END_IF;
+	                        
+	                    END_REGION
+	                    
+	                120://Function Ok
+	                    REGION FUNCTION_DONE
+	                        #statDone := TRUE;
+	                    END_REGION ;
+	                    
+	                900:  //Fault handling
+	                    REGION FUNCTION_FAULTY 
+	                        #statNextStep := 910;
+	                    END_REGION
+	                    
+	                910:   // soft limit switches ended with fault
+	                    #statError := TRUE;
+	                    
+	            END_CASE;
+	            
+	            IF #statNextStep = 900 AND #statActualStep <> 900 THEN
+	                // Store faulty step
+	                #statErrorValue := #statActualStep;
+	            END_IF;
+	        END_REGION
+	        
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION ERROR_HANDLING
+	        
+	        //Error occured in request
+	        IF #statError
+	        THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly if not set in user program region
+	            // #statStatus := ...;
+	            // #statSubStatus := ...;
+	            //
+	            #status := #statErrorID;
+	            #subStatus := #statSubErrorID;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            // Resquest aborted
+	        ELSIF #statCommandAborted
+	        THEN
+	            #statDone := FALSE;
+	            #statBusy := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_EXECUTION_ABORTED";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request finished
+	        ELSIF #statDone
+	        THEN
+	            #statBusy := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	        END_IF;
+	        
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #busy := #statBusy;
+	        #commandAborted := #statCommandAborted;
+	        #error := #statError;
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

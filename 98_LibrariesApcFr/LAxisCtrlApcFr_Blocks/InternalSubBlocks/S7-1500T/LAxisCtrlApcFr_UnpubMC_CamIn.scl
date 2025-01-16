@@ -1,0 +1,160 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_UnpubMC_CamIn"
+TITLE = LAxisCtrl_UnpubMC_CamIn
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.2
+//Support: tech.team.motioncontrol@siemens.com 
+   VAR_INPUT 
+      Master {InstructionName := 'TO_Axis'; LibVersion := '8.0'} : TO_Axis;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Slave {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : TO_SynchronousAxis;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Cam : DB_ANY;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Execute : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      MasterOffset : LReal;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      SlaveOffset : LReal;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      MasterScaling : LReal := 1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      SlaveScaling : LReal := 1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      MasterSyncPosition : LReal;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      SyncProfileReference : DInt := 1;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      MasterStartDistance : LReal;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Velocity : LReal := -1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Acceleration : LReal := -1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Deceleration : LReal := -1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Jerk : LReal := -1.0;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      ApplicationMode : DInt;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      SyncDirection : DInt := 3;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+   END_VAR
+
+   VAR_OUTPUT 
+      StartSync { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      InSync { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Busy { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      CommandAborted { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      Error { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      ErrorID { ExternalWritable := 'False'} : Word;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+      EndOfProfile { ExternalWritable := 'False'} : Bool;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+   END_VAR
+
+   VAR 
+      instMC {InstructionName := 'MC_CAMIN'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_CAMIN;   // Instance of MC_Instruction
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute
+      statCam { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;   // Internal variable of cam
+      statCamType { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;   // Type of cam
+   END_VAR
+
+   VAR CONSTANT 
+      IDLE : Int := 0;   // State idle
+      INVALID_CAM : Int := -3;   // Invalid cam
+      CAM_1K : Int := 1;   // Cam type: Cam
+      CAM_10K : Int := 2;   // Cam type: Cam_10k
+      ERROR_INVALID_TECHNOLOGY_OBJECT : Word := 16#8002;   // See corresponding parameter of MC_ instruction in TIA Portal help (information system)
+   END_VAR
+
+
+BEGIN
+	REGION EXECUTE
+	  IF #Execute AND NOT #statExecuteOld THEN
+	    // Copy parameter
+	    #instMC.MasterOffset         := #MasterOffset;
+	    #instMC.SlaveOffset          := #SlaveOffset;
+	    #instMC.MasterScaling        := #MasterScaling;
+	    #instMC.SlaveScaling         := #SlaveScaling;
+	    #instMC.MasterSyncPosition   := #MasterSyncPosition;
+	    #instMC.SyncProfileReference := #SyncProfileReference;
+	    #instMC.MasterStartDistance  := #MasterStartDistance;
+	    #instMC.Velocity             := #Velocity;
+	    #instMC.Acceleration         := #Acceleration;
+	    #instMC.Deceleration         := #Deceleration;
+	    #instMC.Jerk                 := #Jerk;
+	    #instMC.ApplicationMode      := #ApplicationMode;
+	    #instMC.SyncDirection        := #SyncDirection;
+	    
+	    CASE TypeOfDB(#Cam) OF
+	      TO_CAM:
+	        #statCam := #Cam;
+	        #statCamType := #CAM_1K;
+	        
+	      TO_CAM_10K:
+	        #statCam := #Cam;
+	        #statCamType := #CAM_10K;
+	        
+	      ELSE
+	        #statCam := 0;
+	        #statCamType := #INVALID_CAM;
+	    END_CASE;
+	    
+	  ELSIF NOT #Execute AND (#statCamType < #IDLE) THEN
+	    #statCamType := #IDLE;
+	    
+	    // Outputs
+	    #StartSync := FALSE;
+	    #InSync := FALSE;
+	    #Busy := FALSE;
+	    #CommandAborted := FALSE;
+	    #Error := FALSE;
+	    #ErrorID := 16#0000;
+	    #EndOfProfile := FALSE;
+	  END_IF;
+	END_REGION
+	
+	// Edge detection
+	#statExecuteOld := #Execute;
+	
+	CASE #statCamType OF
+	  #IDLE:
+	    ;
+	    
+	  #CAM_1K,
+	  #CAM_10K:
+	    REGION VALID_CAM
+	      // Inputs 
+	      #instMC.Execute := #Execute;
+	      
+	      CASE #statCamType OF
+	        #CAM_1K:
+	          "LAxisCtrlApcFr_UnpubCamIn1k"(master := #Master,
+	                                   slave := #Slave,
+	                                   cam := #statCam,
+	                                   instMC := #instMC);
+	          
+	        #CAM_10K:
+	          "LAxisCtrlApcFr_UnpubCamIn10k"(master := #Master,
+	                                    slave := #Slave,
+	                                    cam := #statCam,
+	                                    instMC := #instMC);
+	      END_CASE;
+	      
+	      // Outputs
+	      #StartSync      := #instMC.StartSync;
+	      #InSync         := #instMC.InSync;
+	      #Busy           := #instMC.Busy;
+	      #CommandAborted := #instMC.CommandAborted;
+	      #Error          := #instMC.Error;
+	      #ErrorID        := #instMC.ErrorId;
+	      #EndOfProfile   := #instMC.EndOfProfile;
+	      
+	      // Status of MC instruction
+	      IF NOT #instMC.Busy
+	        AND NOT #instMC.CommandAborted
+	        AND NOT #instMC.Error
+	        AND NOT #instMC.EndOfProfile
+	      THEN
+	        // Not active
+	        #statCamType := #IDLE;
+	      END_IF;
+	    END_REGION
+	
+	  ELSE
+	    REGION INVALID_TECHNOLOGY_OBJECT
+	      // Outputs
+	      #StartSync := FALSE;
+	      #InSync := FALSE;
+	      #Busy := FALSE;
+	      #CommandAborted := FALSE;
+	      #Error := TRUE;
+	      #ErrorID := #ERROR_INVALID_TECHNOLOGY_OBJECT;
+	      #EndOfProfile := FALSE;
+	    END_REGION
+	END_CASE;
+END_FUNCTION_BLOCK
+

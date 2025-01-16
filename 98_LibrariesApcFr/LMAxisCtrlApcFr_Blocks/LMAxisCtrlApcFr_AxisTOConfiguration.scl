@@ -1,0 +1,65 @@
+﻿FUNCTION_BLOCK "LMAxisCtrlApcFr_AxisTOConfiguration"
+TITLE = LAxisCtrl_AxisStatusWord
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.3
+//Support: tech.team.motioncontrol@siemens.com
+   VAR_INPUT 
+      axis : DB_ANY;   // Axis specification
+   END_VAR
+
+   VAR_OUTPUT 
+      error : Bool;
+      errorID : Word;
+      isVirtual { ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool;   // TRUE: The technology object has been enabled
+      isLinear { ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool;   // TRUE: An error is present
+      isRotary { ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool;   // TRUE: A restart is active. The technology object is being reinitialized
+   END_VAR
+
+   VAR_TEMP 
+      tempRefSpeedAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_SpeedAxis
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;
+      tempRefExtEncoder {InstructionName := 'TO_ExternalEncoder'; LibVersion := '8.0'} : REF_TO TO_ExternalEncoder;   // Temporary reference of the technology object type TO_ExternalEncoder
+   END_VAR
+
+   VAR CONSTANT 
+      ERROR_INVALID_TECHNOLOGY_OBJECT : Word := 16#8002;   // Illegal specification of the technology object. Check the specification of the technology object for the "Axis", "Master" or "Cam" parameter.
+   END_VAR
+
+
+BEGIN
+	REGION INIT
+	    #tempRefPosAxis ?= #axis;
+	    IF (#tempRefPosAxis <> NULL) THEN
+	        // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	        #isVirtual := (#tempRefPosAxis^.VirtualAxis.Mode = 1);
+	        #isLinear := (#tempRefPosAxis^.Properties.MotionType = 0);
+	        #isRotary := (#tempRefPosAxis^.Properties.MotionType = 1);
+	    ELSE
+	        // TO_Speed_Axis
+	        #tempRefSpeedAxis ?= #axis;
+	        IF (#tempRefSpeedAxis <> NULL) THEN
+	            // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	            #isVirtual := (#tempRefSpeedAxis^.VirtualAxis.Mode = 1);
+	            #isLinear := FALSE;
+	            #isRotary := FALSE;
+	        ELSE
+	            // TO_ExternalEncoder or Invalid
+	            #tempRefExtEncoder ?= #axis;
+	            IF (#tempRefExtEncoder <> NULL) THEN
+	                // Axis type is TO_ExternalEncoder
+	                #isVirtual := FALSE;
+	                #isLinear := (#tempRefExtEncoder^.Properties.MotionType = 0);
+	                #isRotary := (#tempRefExtEncoder^.Properties.MotionType = 1);
+	            ELSE
+	                // Invalid TO specification
+	                #errorID := #ERROR_INVALID_TECHNOLOGY_OBJECT;
+	                RETURN;
+	            END_IF;
+	        END_IF;
+	    END_IF;
+	END_REGION
+	
+END_FUNCTION_BLOCK
+

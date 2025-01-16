@@ -1,0 +1,56 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubMC_GetCamStatusWord10k" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      cam {InstructionName := 'TO_Cam_10k'; LibVersion := '8.0'} : TO_Cam_10k;
+   END_VAR
+
+   VAR_OUTPUT 
+      camUsed : Bool;
+      error : Bool;
+      restartActive : Bool;
+      onlineStartValuesChanged : Bool;
+      camDataChange : Bool;
+      interpolated : Bool;
+      interpolation : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      tempStatusWord : DWord;
+   END_VAR
+
+
+BEGIN
+	//==========================================================================================
+	// SIEMENS AG
+	// (c)Copyright 2017 All Rights Reserved
+	//------------------------------------------------------------------------------------------
+	// Library: LAxisCtrl
+	// Tested with: S7-1515T-2 PN
+	// Engineering: TIA Portal V16
+	// Restrictions: ---
+	// Requirements: S7-1500/S7-1500T FW 2.5
+	// Functionality: Get information from status word
+	//------------------------------------------------------------------------------------------
+	// Change log table:
+	// Version    Date          Expert in charge    Changes applied
+	// 01.00.01   23.06.2020    APC                 First released version
+	//===========================================================================================
+	
+	//----------------------------------------------------------------------------------------------
+	// Read statusword
+	//----------------------------------------------------------------------------------------------
+	#tempStatusWord := #cam.StatusWord;
+	
+	//----------------------------------------------------------------------------------------------
+	// Write outputs
+	//----------------------------------------------------------------------------------------------
+	#camUsed := #tempStatusWord.%X0;
+	#error := #tempStatusWord.%X1;
+	#restartActive := #tempStatusWord.%X2;
+	#onlineStartValuesChanged := #tempStatusWord.%X3;
+	#camDataChange := #tempStatusWord.%X4;
+	#interpolated := #tempStatusWord.%X5;
+	#interpolation := #tempStatusWord.%X6;
+END_FUNCTION
+

@@ -1,0 +1,858 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_HomingOnSensor"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : SDA
+FAMILY : APCFR
+VERSION : 1.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge starts action once
+      homePosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := 0.0;   // Position value for homing position
+      homePositionOffset { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;   // Offset position before homing
+      setHomeAtSensor { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool := FALSE;   // FALSE: #Position = Axis position after offset  / TRUE :  #Position = axis position at sensor
+      homingVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := -1.0;   // Vitesse de recherche de la butée. Le signe définit la direction
+      returnVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := -1.0;   // Vitesse d’approche et de dégagement. Pour une valeur ≤ 0, utilisation de la configuration du TO
+      sensorInput { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      edgeType { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 1;   // Detection of edge up or down 1=UP / 2=DOWN
+      waitingSensorTimeOut { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : Time := T#10s;   // Wait time to reach input sensor
+      acceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Acceleration for all moving
+      deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Deceleration for all moving
+      jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Jerk for all moving
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Commanded action has been completed successfully
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: FB is not finished and new output values can be expected
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge informs that an error occurred during the execution of
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_NO_CALL";   // Current status of FB
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "ERR_NO_ERROR";
+      TOAlarmNr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt := 0;
+      errorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 0;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statTOAlarmNr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statAxisStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         boError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boStandstill { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boEnabled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHomed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boTorqueLimitingActive { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      END_STRUCT;
+      statAxisCfg { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         boSWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      END_STRUCT;
+      statOperativeSensor { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      statHWLimitsDisabled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;
+      statWriteTOParameterValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := TRUE;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      instEdgeUpSensor {InstructionName := 'R_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : R_TRIG;
+      instEdgeDownSensor {InstructionName := 'F_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : F_TRIG;
+      instEdgeUpSensorReturn {InstructionName := 'R_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : R_TRIG;
+      instEdgeDownSensorReturn {InstructionName := 'F_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : F_TRIG;
+      instWriteToParameter {InstructionName := 'MC_WRITEPARAMETER'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_WRITEPARAMETER;
+      instMoveVelocity {InstructionName := 'MC_MOVEVELOCITY'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEVELOCITY;
+      instMoveRelative {InstructionName := 'MC_MOVERELATIVE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVERELATIVE;
+      instHome {InstructionName := 'MC_HOME'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HOME;
+      instHalt {InstructionName := 'MC_HALT'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HALT;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Homing absolute or incremental encoder on sensor
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA     Expert  Changes applied
+	  // 01.00    2020.07.24  V16     SDA     First released version 
+	  // 01.01    2021.06.01  V16     SDA     Name changed 
+	  // 01.02    2021.09.06  V16     FGe     Added HW limits handling
+	  //                                      Added input #setHomeAtSensor
+	  // 01.03    2022.04.20  V17     FGe     Moved constants to global definition
+	  // 05.00    2024.09.11  V19     SDa     Adaptation with DBAny type #axis
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	  //===================================================================================================
+	END_REGION
+	
+	
+	REGION INITIALISATION
+	    #tempRefPosAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefPosAxis <> NULL) THEN
+	    // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        //------------------------------------------------------------------------------------------
+	        // TODO: Insert here instances of MC instructions.
+	        // inputs / outputs to be set / used in main section
+	        // 
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #instWriteToParameter(Axis := #tempRefPosAxis^,
+	                              ParameterNumber := 1000,
+	                              Value := #statWriteTOParameterValue);
+	        
+	        #instMoveVelocity(Axis := #tempRefPosAxis^,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk,
+	                          Current := FALSE,
+	                          PositionControlled := TRUE);
+	        
+	        #instHome(Axis := #tempRefPosAxis^);
+	        
+	        #instMoveRelative(Axis := #tempRefPosAxis^,
+	                          Velocity := #returnVelocity,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk);
+	        
+	        #instHalt(Axis := #tempRefPosAxis^,
+	                  Deceleration := #deceleration,
+	                  Jerk := #jerk);
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION CALL HANDLING
+	        
+	        //Check if FB is triggered
+	        IF #execute AND NOT #statExecuteOld
+	            // if FB should finish current job before new job can be started with rising edge of execute,
+	            // you must remove the first comment character on next line
+	            AND NOT #statBusy
+	        THEN
+	            REGION FB TRIG (FIRST CALL)
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // State
+	                #statNextStep := 10;
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Commands
+	                #instMoveVelocity.Execute := FALSE;
+	                #instMoveRelative.Execute := FALSE;
+	                #instHome.Execute := FALSE;
+	                #instHalt.Execute := FALSE;
+	                //-----------------------------------------------------------------------------------
+	                
+	                //Functionality is busy
+	                #statDone := FALSE;
+	                #statBusy := TRUE;
+	                #statCommandAborted := FALSE;
+	                //Reset diagnostic
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                // Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_FIRST_CALL";
+	                #subStatus := #statSubErrorID;
+	                #TOAlarmNr := #statTOAlarmNr;
+	                #errorValue := #statErrorValue;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently inactive
+	        ELSIF NOT #execute AND NOT #statBusy AND NOT #statExecuteOld
+	        THEN
+	            REGION NO CALL
+	                //Outputs are reset with falling edge of enable input
+	                //Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_NO_CALL";
+	                #subStatus := "ERR_NO_ERROR";
+	                #TOAlarmNr := 0;
+	                #errorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently executed and not finished
+	        ELSIF #statBusy OR #execute
+	        THEN
+	            REGION BUSY
+	                #statExecuteOld := #execute OR #statBusy;
+	            END_REGION
+	            
+	            //FB finished job
+	        ELSE
+	            REGION LAST CALL
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // State
+	                #statNextStep := 0;
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                //Commands
+	                #instMoveVelocity.Execute := FALSE;
+	                #instMoveRelative.Execute := FALSE;
+	                #instHome.Execute := FALSE;
+	                #instHalt.Execute := FALSE;
+	                //-----------------------------------------------------------------------------------
+	                #statDone := FALSE;
+	                #statBusy := FALSE;
+	                #statCommandAborted := FALSE;
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	        END_IF;
+	    END_REGION ;
+	    
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statAborted   Execution is aborted by an external command
+	        //  - statError:    Error happened in program
+	        //  - statStatus:   Identifier for current error
+	        //  - statSubStatus:Identifier for subcall error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - status, subStatus, aborted, busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //-----------------------------------------------------------------------------------
+	        
+	        // Init axis status
+	        #statAxisStatus.boStandstill := #tempRefPosAxis^.StatusWord.%X7;
+	        #statAxisStatus.boEnabled := #tempRefPosAxis^.StatusWord.%X0;
+	        #statAxisStatus.boError := #tempRefPosAxis^.StatusWord.%X1;
+	        #statAxisStatus.boHomed := #tempRefPosAxis^.StatusWord.%X5;
+	        #statAxisStatus.boTorqueLimitingActive := #tempRefPosAxis^.StatusWord.%X26;
+	        
+	        // update running step
+	        #statActualStep := #statNextStep;
+	        CASE #statActualStep OF
+	                
+	            10: // Init values
+	                REGION INITIALISATION                            
+	                    // Operative sensor
+	                    #statOperativeSensor := UDINT_TO_UINT(IN := #tempRefPosAxis^.OperativeSensor);
+	                    
+	                    // Save software limits configuration
+	                    #statAxisCfg.boSWLimit := #tempRefPosAxis^.PositionLimits_SW.Active;
+	                    
+	                    // save Hardware limits configuration
+	                    #statAxisCfg.boHWLimit := #tempRefPosAxis^.PositionLimits_HW.Active;
+	                    
+	                    // Next step
+	                    #statNextStep := 20;
+	                END_REGION
+	                
+	            20: // Check Homing On Sensor conditions
+	                REGION CHECK CONDITIONS
+	                    IF #tempRefPosAxis^.StatusWord.%X28 THEN
+	                        // Torque limiting not possible if axis is not in position controled mode
+	                        // Last move command was in non-positin controled mode
+	                        #statErrorID := "ERR_HOS_NOTINPOSCONTTRLROLED_MODE";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (#tempRefPosAxis^.VirtualAxis.Mode = 1) THEN
+	                        // Torque limiting not possible for virtual axis 
+	                        #statErrorID := "ERR_HOS_VIRTUAL_AXIS";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (#tempRefPosAxis^.Simulation.Mode = 1) THEN
+	                        // Torque limiting not possible in simulation mode 
+	                        #statErrorID := "ERR_HOS_SIMULATED_AXIS";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (NOT #statAxisStatus.boEnabled) THEN
+	                        // Axis not enabled
+	                        // includes all case like axis config error, drive fault,...
+	                        #statErrorID := "ERR_HOS_AXIS_DISABLED";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (ABS(#homingVelocity) <= #tempRefPosAxis^.StandstillSignal.VelocityThreshold) OR (ABS(#returnVelocity) <= #tempRefPosAxis^.StandstillSignal.VelocityThreshold) THEN
+	                        // velocity setpoint < standstill threshold 
+	                        #statErrorID := "ERR_HOS_VELOCITY_SETPOINT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSE
+	                        // Next step
+	                        #statNextStep := 30;
+	                    END_IF;
+	                END_REGION
+	                
+	            30: // From V16 Hardware limits can  be disabled / enabled even if axis is powered ON
+	                // Reset memory HW Limits have to be reactivated
+	                #statHWLimitsDisabled := FALSE;
+	                
+	                IF #statAxisCfg.boHWLimit THEN
+	                    // Initialize request
+	                    #statWriteTOParameterValue := FALSE;
+	                    #instWriteToParameter.Execute := TRUE;
+	                    
+	                    IF #instWriteToParameter.Error THEN
+	                        // Reset write request
+	                        #instWriteToParameter.Execute := FALSE;
+	                        #statErrorID := "ERR_HOS_HW_LIMITS";
+	                        #statSubErrorID := #instWriteToParameter.ErrorId;
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instWriteToParameter.Done THEN
+	                        // Reset write request
+	                        #instWriteToParameter.Execute := FALSE;
+	                        // Memorize HW Limits have to be reactivated
+	                        #statHWLimitsDisabled := TRUE;
+	                        // Next step
+	                        #statNextStep := 35;
+	                    END_IF;
+	                ELSE
+	                    // Next step
+	                    #statNextStep := 35;
+	                END_IF;
+	                
+	            35: // Disable software limits
+	                REGION DISABLE POSITIONING LIMITS                            
+	                    #tempRefPosAxis^.PositionLimits_SW.Active := FALSE;
+	                    
+	                    // Next step
+	                    #statNextStep := 40;
+	                END_REGION
+	                
+	            40: // Test sensor state
+	                REGION TEST SENSOR STATE                            
+	                    IF (#sensorInput AND #edgeType = "LAPCFR_HOS_UP") OR (NOT #sensorInput AND #edgeType = "LAPCFR_HOS_DOWN") THEN
+	                        #statNextStep := 80;
+	                    ELSE
+	                        #statNextStep := 50;
+	                    END_IF;
+	                END_REGION
+	                
+	            50: // Move axis for reaching edge up or down of input sensor according to edgeType
+	                REGION APPROACH TO SENSOR                            
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_MOVEVELOCITY_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Move axis
+	                    #instMoveVelocity.Execute := TRUE;
+	                    IF #homingVelocity < 0 THEN
+	                        #instMoveVelocity.Direction := "LAPCFR_HOS_DIR_NEGATIVE"; // negative direction
+	                    ELSE
+	                        #instMoveVelocity.Direction := "LAPCFR_HOS_DIR_POSITIVE"; // positive direction
+	                    END_IF;
+	                    // dynamic to coast sensor
+	                    #instMoveVelocity.Velocity := #homingVelocity;
+	                    
+	                    // Next Step
+	                    IF #instMoveVelocity.Busy AND NOT #statAxisStatus.boStandstill THEN
+	                        // Axis moving
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := 60;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted THEN
+	                        // MC_MoveVelocity aborted
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // MC_MoveVelocity error
+	                        #statErrorID := "ERR_HOS_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // sensor not reached inside timeout
+	                        #statErrorID := "ERR_HOS_MC_MOVEVELOCITY_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	            60: // Waiting for reaching input sensor and stop axis
+	                REGION WAIT EDGE SENSOR TO STOP AXIS
+	                    // Enable approach duration timeout
+	                    #statStepTimeOut_PT := #waitingSensorTimeOut;
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Trigger on sensor
+	                    #instEdgeUpSensor(CLK := #sensorInput);
+	                    #instEdgeDownSensor(CLK := #sensorInput);
+	                    
+	                    // Next Step
+	                    IF #instHalt.Busy THEN
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instMoveVelocity.Execute := FALSE;
+	                        #statNextStep := 70;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // Error in Move_Velocity    
+	                        // Including Axis disabled (eg external MC_Power OFF, Fault in drive,...)
+	                        #statErrorID := "ERR_HOS_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted THEN
+	                        // Move velocity aborted (eg external MC_HALT command)
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_COMMAND_ABORTED";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // TimeOut Graph Step    
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (#instEdgeUpSensor.Q AND #edgeType = "LAPCFR_HOS_UP") OR (#instEdgeDownSensor.Q AND #edgeType = "LAPCFR_HOS_DOWN") THEN
+	                        // input sensor reached
+	                        #statStepTimeOut_IN := FALSE;
+	                        // Stop axis
+	                        #instHalt.Execute := TRUE;
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            70://Wait axis in standstill
+	                REGION WAIT STOP AXIS
+	                    // Enable approach duration timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_HALT_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Next Step
+	                    IF #instHalt.Done AND #statAxisStatus.boStandstill THEN
+	                        // Axis stopping
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instHalt.Execute := FALSE;
+	                        #statNextStep := 80;
+	                        
+	                    ELSIF #instHalt.CommandAborted THEN
+	                        // MC_Halt aborted
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statErrorValue := #statActualStep;
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instHalt.Error THEN
+	                        // MC_Halt error
+	                        // Diagnostic in string
+	                        #statErrorID := "ERR_HOS_MC_HALT";
+	                        #statSubErrorID := #instHalt.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // axis stalled (eg limit too low)
+	                        #statErrorID := "ERR_HOS_HALT_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            80:// Move back axis for reaching edge up or down of input sensor according to edgeType
+	                REGION MOVE BACK TO SENSOR
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_MOVEVELOCITY_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Move axis
+	                    IF #homingVelocity < 0 THEN
+	                        #instMoveVelocity.Direction := "LAPCFR_HOS_DIR_POSITIVE";
+	                    ELSE
+	                        #instMoveVelocity.Direction := "LAPCFR_HOS_DIR_NEGATIVE";
+	                    END_IF;
+	                    #instMoveVelocity.Velocity := #returnVelocity;
+	                    #instMoveVelocity.Execute := TRUE;
+	                    
+	                    // Next Step
+	                    IF #instMoveVelocity.Busy AND NOT #statAxisStatus.boStandstill THEN
+	                        // Axis moving
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := 90;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted THEN
+	                        // MC_MoveVelocity aborted
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // MC_MoveVelocity error
+	                        #statErrorID := "ERR_HOS_RETURN_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // axis stalled (eg limit too low)
+	                        #statErrorID := "ERR_HOS_RETURN_MC_MOVEVELOCITY_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	            90: // Waiting for reaching edge of input sensor to move of offset position
+	                REGION WAIT EDGE SENSOR TO RETURN OF OFFSET POSITION
+	                    // Enable approach duration timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_RETURN_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Trigger on sensor
+	                    #instEdgeUpSensorReturn(CLK := #sensorInput);
+	                    #instEdgeDownSensorReturn(CLK := #sensorInput);
+	                    
+	                    // Next step
+	                    IF #instMoveRelative.Busy THEN
+	                        #instMoveVelocity.Execute := FALSE;
+	                        #statNextStep := 95;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // Error in Move_Velocity    
+	                        // Including Axis disabled (eg external MC_Power OFF, Fault in drive,...)
+	                        #statErrorID := "ERR_HOS_RETURN_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted THEN
+	                        // Move velocity aborted (eg external MC_HALT command)
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // TimeOut Graph Step    
+	                        #statErrorID := "ERR_HOS_RETURN_MOVEVELOCITY_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF (#instEdgeUpSensorReturn.Q AND #edgeType = "LAPCFR_HOS_DOWN") OR (#instEdgeDownSensorReturn.Q AND #edgeType = "LAPCFR_HOS_UP") THEN
+	                        // input sensor reached
+	                        #statStepTimeOut_IN := FALSE;
+	                        
+	                        // halt axis
+	                        //#instHalt.Execute := TRUE;
+	                        
+	                        // move relative to go homing position offset
+	                        IF #homingVelocity < 0 THEN
+	                            #instMoveRelative.Distance := ABS(#homePositionOffset); // move to positive direction
+	                        ELSE
+	                            #instMoveRelative.Distance := -1.0 * ABS(#homePositionOffset); // move to negative direction
+	                        END_IF;
+	                        // dynamic to coast sensor
+	                        #instMoveRelative.Velocity := ABS(#returnVelocity);
+	                        #instMoveRelative.Execute := TRUE;
+	                        
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            95: //Wait axis in standstill
+	                REGION WAIT AXIS IN STANDSTILL
+	                    // Enable approach duration timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_RETURN_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Next Step
+	                    IF #instMoveRelative.Done AND #statAxisStatus.boStandstill THEN
+	                        // Axis stopping
+	                        #statStepTimeOut_IN := FALSE;
+	                        //#instHalt.Execute := FALSE;
+	                        #instMoveRelative.Execute := FALSE;
+	                        #statNextStep := 100;
+	                        
+	                    ELSIF #instMoveRelative.CommandAborted THEN
+	                        // MC_Halt aborted
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instMoveRelative.Error THEN
+	                        // MC_Halt error
+	                        #statErrorID := "ERR_HOS_MC_MOVERELATIVE";
+	                        #statSubErrorID := #instMoveRelative.ErrorId;
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // axis stalled (eg limit too low)
+	                        #statErrorID := "ERR_HOS_MOVERELATIVE_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            100: // Axis Homing
+	                REGION HOMING                           
+	                    // Enable homing command timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HOS_HOMING_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Define homing mode
+	                    IF (#tempRefPosAxis^.Sensor[#statOperativeSensor].Type = 1) OR
+	                        (#tempRefPosAxis^.Sensor[#statOperativeSensor].Type = 2) THEN
+	                        #instHome.Mode := 7; // Absolute encoder
+	                    ELSE
+	                        #instHome.Mode := 0; // Incremental encoder
+	                    END_IF;
+	                    
+	                    // Homing position value
+	                    IF #setHomeAtSensor THEN
+	                        #instHome.Position := #homePosition + #homePositionOffset;
+	                    ELSE
+	                        #instHome.Position := #homePosition;
+	                    END_IF;
+	                    
+	                    // Home axis
+	                    #instHome.Execute := TRUE;
+	                    
+	                    IF #instStepTimeOut.Q THEN
+	                        // Homing timeout
+	                        #statErrorID := "ERR_HOS_HOMING_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instHome.CommandAborted THEN
+	                        // Homing aborted
+	                        #statErrorValue := #statActualStep;
+	                        #statErrorID := "ERR_HOS_WAITING_SENSOR_TIMEOUT";
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #instHome.Error THEN
+	                        // Homing error
+	                        #statErrorID := "ERR_HOS_MC_HOME";
+	                        #statSubErrorID := #instHome.ErrorId;
+	                        
+	                        #statNextStep := 900;
+	                        
+	                    ELSIF #statAxisStatus.boHomed AND #instHome.Done THEN
+	                        // Homing done
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instHome.Execute := FALSE;
+	                        #statNextStep := 110;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	                
+	            110: // Enable Hardware limits
+	                REGION ENABLE HW LIMITS
+	                    IF #statHWLimitsDisabled THEN
+	                        // HW Limits to be activated. 
+	                        // Initialize request
+	                        #statWriteTOParameterValue := TRUE;
+	                        #instWriteToParameter.Execute := TRUE;
+	                        
+	                        IF #instWriteToParameter.Error THEN
+	                            // Reset write request
+	                            #instWriteToParameter.Execute := FALSE;
+	                            #statErrorID := "ERR_HOS_HW_LIMITS";
+	                            #statSubErrorID := #instWriteToParameter.ErrorId;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #instWriteToParameter.Done THEN
+	                            // Reset write request
+	                            #instWriteToParameter.Execute := FALSE;
+	                            // Reset memory HW Limits have to be reactivated
+	                            #statHWLimitsDisabled := FALSE;
+	                            // Next step
+	                            #statNextStep := 115;
+	                        END_IF;
+	                    ELSE
+	                        // Next step
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := 115;
+	                    END_IF;
+	                END_REGION
+	                
+	            115://Enable Software limits
+	                REGION ENABLE POSITIONING LIMITS                           
+	                    #tempRefPosAxis^.PositionLimits_SW.Active := #statAxisCfg.boSWLimit;
+	                    // From V15.1 Hardware limits can not be disabled / enabled
+	                    //tempRefPosAxis^.PositionLimits_HW.Active := #statAxis.boHWLimit;
+	                    
+	                    #statNextStep := 120;
+	                END_REGION
+	                
+	            120://Function Ok
+	                REGION FUNCTION_DONE
+	                    #statDone := TRUE;
+	                END_REGION ;
+	                
+	            900:  //Fault handling
+	                REGION FUNCTION_FAULTY 
+	                    
+	                    // Reset Timers
+	                    #statStepTimeOut_IN := FALSE;
+	                    
+	                    // Reset Commands
+	                    #instHalt.Execute := FALSE;
+	                    #instMoveVelocity.Execute := FALSE;
+	                    #instMoveRelative.Execute := FALSE;
+	                    #instHome.Execute := FALSE;
+	                    
+	                    // Stop Axis
+	                    IF NOT #statAxisStatus.boStandstill AND #statAxisStatus.boEnabled THEN
+	                        #instHalt.Execute := TRUE;
+	                    ELSE
+	                        #instHalt.Execute := FALSE;
+	                        #statNextStep := 910;
+	                    END_IF;
+	                END_REGION
+	                
+	            910:  // Restore SW limits configuration
+	                #tempRefPosAxis^.PositionLimits_SW.Active := #statAxisCfg.boSWLimit;
+	                
+	                // Restore Hardware limits configuration
+	                // Initialize request
+	                #statWriteTOParameterValue := #statAxisCfg.boHWLimit;
+	                #instWriteToParameter.Execute := #statHWLimitsDisabled;
+	                
+	                // No request or request ended
+	                IF NOT #statHWLimitsDisabled OR #instWriteToParameter.Error OR #instWriteToParameter.Done THEN
+	                    // Reset write request
+	                    #instWriteToParameter.Execute := FALSE;
+	                    // Reset memory HW Limits have to be reactivated
+	                    #statHWLimitsDisabled := FALSE;
+	                    // Next step
+	                    #statNextStep := 920;
+	                END_IF;
+	                
+	            920:   // Homing ended with fault
+	                // Check if end cause is technology alarm on TO
+	                IF #statSubErrorID = 16#8001 THEN
+	                    #statTOAlarmNr := #tempRefPosAxis^.ErrorDetail.Number;
+	                ELSE
+	                    #statTOAlarmNr := 0;
+	                END_IF;
+	                
+	                // Next step
+	                #statError := TRUE;
+	                
+	        END_CASE;
+	        
+	        IF #statNextStep = 900 AND #statActualStep <> 900 THEN
+	            // Store faulty step
+	            #statErrorValue := #statActualStep;
+	        END_IF;
+	        
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    
+	    REGION ERROR_HANDLING
+	        
+	        //Error occured in request
+	        IF #statError
+	        THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly if not set in user program region
+	            // #statStatus := ...;
+	            // #statSubStatus := ...;
+	            //
+	            #status := #statErrorID;
+	            #subStatus := #statSubErrorID;
+	            #TOAlarmNr := #statTOAlarmNr;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            // Resquest aborted
+	        ELSIF #statCommandAborted
+	        THEN
+	            #statDone := FALSE;
+	            #statBusy := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_EXECUTION_ABORTED";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request finished
+	        ELSIF #statDone
+	        THEN
+	            #statBusy := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	        END_IF;
+	        
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #busy := #statBusy;
+	        #commandAborted := #statCommandAborted;
+	        #error := #statError;
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	    
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

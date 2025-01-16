@@ -1,0 +1,83 @@
+﻿FUNCTION "LAxisCtrlApcFr_IsSpeedAxisReady" : Void
+TITLE = LApcFr_IsSpeedAxisReady
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : LApcFr
+VERSION : 1.0
+   VAR_INPUT 
+      axis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : TO_SpeedAxis;   //  Axis technology object
+      "S120 Infeed in Operation" : Bool;   // (For booksize drive) TRUE: infeed in operation
+      "STO or SOS active" : Bool;   // FALSE: both STO and SOS signal are TRUE (no active stop request)
+   END_VAR
+
+   VAR_OUTPUT 
+      axisReady : Bool;   // TRUE: Axis ready
+      driveInOperation : Bool;   // TRUE: Drive is running
+      restartInProgress : Bool;   // TRUE: TO Restarting
+      inSimulation : Bool;   // TRUE: Axis is in simulation
+      encoderValid : Bool;   // TRUE: Encoder value is valid
+      communicationOk : Bool;   // TRUE: Communication with drive is established
+   END_VAR
+
+   VAR_TEMP 
+      tempAxisReady : Bool;
+      tempRestarting : Bool;
+      tempInSimulation : Bool;
+      tempDriveInOperation : Bool;
+      tempCommunicationOk : Bool;
+      tempEncoderValid : Bool;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Check conditions for axis to be operated
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2019.07.25  ---   FGe   release
+	  // 01.01    2020.01.31  ---   FGe   Minor changes
+	  // 02.00    2021.04.23  ---   FGe   Specific bloc for TO_Speed
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===========================================================================================
+	END_REGION
+	
+	REGION PROCESSING
+	  // Check for speed controlled axis
+	  IF #axis.StatusWord.%X2 THEN
+	    #tempRestarting := TRUE;
+	  ELSE
+	    #tempRestarting := FALSE;
+	    #tempInSimulation := (#axis.Simulation.Mode = 1);
+	    #tempDriveInOperation := #axis.StatusDrive.InOperation;
+	    #tempEncoderValid := FALSE;
+	    #tempCommunicationOk := #axis.StatusDrive.CommunicationOK;
+	  END_IF;
+	  
+	  IF #tempRestarting THEN
+	    #tempAxisReady := FALSE;
+	  ELSE
+	    #tempAxisReady := #tempCommunicationOk AND #"S120 Infeed in Operation" AND NOT #"STO or SOS active";
+	  END_IF;
+	END_REGION
+	
+	REGION OUTPUTS
+	  #axisReady := #tempAxisReady;
+	  #restartInProgress := #tempRestarting;
+	  #driveInOperation := #tempDriveInOperation;
+	  #inSimulation := #tempInSimulation;
+	  #encoderValid := FALSE;
+	  #communicationOk := #tempCommunicationOk;
+	  
+	  RETURN;
+	END_REGION
+END_FUNCTION
+

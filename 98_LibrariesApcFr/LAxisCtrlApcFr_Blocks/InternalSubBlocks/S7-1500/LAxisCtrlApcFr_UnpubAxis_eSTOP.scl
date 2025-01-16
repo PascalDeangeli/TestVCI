@@ -1,0 +1,50 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_UnpubAxis_eSTOP"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;   // Axis specification
+      execute : Bool;
+      mode : DInt;
+      deceleration : LReal;
+      jerk : LReal;
+      abortAcceleration : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      done : Bool;
+      busy : Bool;
+      commandAborted : Bool;
+      error : Bool;
+      errorId : Word;
+   END_VAR
+
+   VAR 
+      instMC_STOP {InstructionName := 'MC_STOP'; LibVersion := '8.0'} : MC_STOP;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_SpeedAxis
+   END_VAR
+
+
+BEGIN
+	// MC_STOP Function
+	#tempRefPosAxis ?= #axis;
+	
+	IF (#tempRefPosAxis <> NULL) THEN
+	    // Axis type is TO_SpeedAxis or TO_PositioningAxis or TO_SynchronousAxis
+	    #instMC_STOP(Axis := #tempRefPosAxis^,
+	                 Execute := #execute,
+	                 Mode := #mode,
+	                 Deceleration := #deceleration,
+	                 Jerk := #jerk,
+	                 AbortAcceleration := #abortAcceleration,
+	                 Done => #done,
+	                 Busy => #busy,
+	                 CommandAborted => #commandAborted,
+	                 Error => #error,
+	                 ErrorId => #errorId);
+	END_IF;
+	
+END_FUNCTION_BLOCK
+

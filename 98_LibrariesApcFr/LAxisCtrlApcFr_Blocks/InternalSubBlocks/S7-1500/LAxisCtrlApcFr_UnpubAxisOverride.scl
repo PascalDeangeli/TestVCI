@@ -1,0 +1,27 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubAxisOverride" : Void
+TITLE = LAxisCtrl_UnpubAxisPosition
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.2
+//Support: tech.team.motioncontrol@siemens.com
+   VAR_INPUT 
+      axis : DB_ANY;   // Axis specification
+      override : LReal;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefSpeedAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_SpeedAxis
+   END_VAR
+
+
+BEGIN
+	// Write axis parameter
+	#tempRefSpeedAxis ?= #axis;
+	
+	IF (#tempRefSpeedAxis <> NULL) THEN
+	    // Axis type is TO_SpeedAxis or TO_PositioningAxis or TO_SynchronousAxis
+	    #tempRefSpeedAxis^.Override.Velocity := LIMIT(MN := 0.0, IN := #override, MX := 200.0);
+	END_IF;
+END_FUNCTION
+

@@ -1,0 +1,375 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_McGearInPos_ExternalEncoder"
+TITLE = MC_GearInPos_APCFR
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : APCFR
+VERSION : 2.1
+//Substitute standard MC_GearInPos instruction to activate synchronism by moving slave to sync position if set to dynamics parameters
+   VAR_INPUT 
+      master {InstructionName := 'TO_ExternalEncoder'; LibVersion := '8.0'} : TO_ExternalEncoder;
+      slave {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : TO_SynchronousAxis;
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      forceSlavePrePositioning { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := False;
+      ratioNumerator { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt := 1;
+      ratioDenominator { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt := 1;
+      masterSyncPosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      slaveSyncPosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      syncProfileReference { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt := 0;
+      masterStartDistance { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      velocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := -1.0;
+      acceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := -1.0;
+      deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := -1.0;
+      jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := -1.0;
+      syncDirection { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt := 3;
+      abortAcceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := TRUE;
+   END_VAR
+
+   VAR_OUTPUT 
+      startSync { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      inSync { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      aborting { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+   END_VAR
+
+   VAR 
+      statStateMachine { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+      statAbortAcceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;   // Static value for output error
+      statSubStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;   // Static value for output error
+      statSyncOnDynamics { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      instAbortAccel {InstructionName := 'MC_HALT'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HALT;
+      instMoveAbsolute {InstructionName := 'MC_MOVEABSOLUTE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEABSOLUTE;
+      instGearInPos {InstructionName := 'MC_GEARINPOS'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_GEARINPOS;
+      instHalt {InstructionName := 'MC_HALT'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HALT;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  T-CPU
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Substitute standard MC_GearInPos instruction to activate synchronism
+	  //                by moving slave to sync position if set to dynamics parameters
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 03.00    2019.09.01  FGe   Release (MC_GearInPosAxis_APCFR version 03.00 adapted for external encoder)
+	  // 04.00    2020.09.01  FGe   Added SyncProfileReference=3
+	  // 04.01    2022.03.10  FGe   Bugfixes (init of masterSyncPosition, slaveSyncPosition in some case)
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===================================================================================================
+	END_REGION
+	
+	#instAbortAccel(Axis              := #slave,
+	                Deceleration      := #deceleration,
+	                Jerk              := #jerk,
+	                AbortAcceleration := TRUE);
+	
+	#instMoveAbsolute(Axis         := #slave,
+	                  Velocity     := #velocity,
+	                  Acceleration := #acceleration,
+	                  Deceleration := #deceleration,
+	                  Jerk         := #jerk,
+	                  Direction    := DINT_TO_INT(IN := #syncDirection));
+	
+	#instHalt(Axis              := #slave,
+	          Deceleration      := #deceleration,
+	          Jerk              := #jerk,
+	          AbortAcceleration := TRUE);
+	
+	#instGearInPos(Master               := #master,
+	               Slave                := #slave,
+	               //                       Execute := #Execute,
+	               RatioNumerator       := #ratioNumerator,
+	               RatioDenominator     := #ratioDenominator,
+	               //                       MasterSyncPosition := #MasterSyncPosition,
+	               //                       SlaveSyncPosition := #SlaveSyncPosition,
+	               SyncProfileReference := #syncProfileReference,
+	               MasterStartDistance  := #masterStartDistance,
+	               Velocity             := #velocity,
+	               Acceleration         := #acceleration,
+	               Deceleration         := #deceleration,
+	               Jerk                 := #jerk,
+	               SyncDirection        := #syncDirection
+	);
+	
+	CASE #statStateMachine OF
+	    
+	  0:  // initial state
+	    IF #execute THEN
+	      // HERE IS DEFINED HOW BLOC BEAHVES DEPENDING ON CONDITIONS
+	      //   - sync on dynamic parametres or Master distance
+	      //   - Master at standstill or Moving
+	      //   - Master in sync position
+	      #busy := TRUE;
+	      #statAbortAcceleration := #abortAcceleration;
+	      #statSyncOnDynamics := (#syncProfileReference = 0);
+	      IF #statSyncOnDynamics THEN
+	        // Sync on dynamic parameters 
+	        IF ((#master.StatusWord.%X6) AND (#master.ActualVelocity < #slave.StandstillSignal.VelocityThreshold)) THEN
+	          // PAY ATTENTION: USE OF SLAVE MONTORING WINDOW BECAUSE NO MONITORING WINDOW ON EXT ENCODER !!!
+	          // Done, no job running on master AND master at standstill
+	          IF (ABS(#master.ActualPosition - #masterSyncPosition) <= #slave.PositioningMonitoring.Window) THEN
+	            // PAY ATTENTION: USE OF SLAVE MONTORING WINDOW BECAUSE NO MONITORING WINDOW ON EXT ENCODER !!!
+	            // Master actual position - sync position inside positionning window
+	            // Usefull when position definition is leak (master can not reach exactly position setpoint)
+	            // Moves slave to sync positions
+	            #instMoveAbsolute.Position := #slaveSyncPosition;
+	            #statStateMachine := #statStateMachine + 10;
+	          ELSE
+	            // Master away from sync position
+	            // External command to move master needed in order to reach sync state
+	            IF NOT (#forceSlavePrePositioning) THEN
+	              // DO NOT Move slave to SlaveSyncPos ( ~ StateMachine =20)
+	              // otherwise, slave would have to move away in order to sync at (MasterSyncPos, SlaveSyncPos)
+	              // set sync parameters to input parameters --> GearInPos
+	              #instGearInPos.MasterSyncPosition := #masterSyncPosition;
+	              #instGearInPos.SlaveSyncPosition := #slaveSyncPosition;
+	              #statStateMachine := #statStateMachine + 30;
+	            ELSE
+	              // Force slave positioning to SlaveSyncPos
+	              // Slave will have to move away in order to sync at (MasterSyncPos, SlaveSyncPos)!!
+	              #instMoveAbsolute.Position := #slaveSyncPosition;
+	              #statStateMachine := #statStateMachine + 20;
+	            END_IF;
+	          END_IF;
+	        ELSE
+	          // Pending or active command on Master (~ moving)
+	          IF NOT (#forceSlavePrePositioning) THEN
+	            // DO NOT Move slave to SlaveSyncPos ( ~ StateMachine =20)
+	            // otherwise, slave would have to move away in order to sync at (MasterSyncPos, SlaveSyncPos)
+	            // set sync parameters to input parameters --> GearInPos
+	            #instGearInPos.MasterSyncPosition := #masterSyncPosition;
+	            #instGearInPos.SlaveSyncPosition := #slaveSyncPosition;
+	            #statStateMachine := #statStateMachine + 30;
+	          ELSE
+	            // Force slave positioning to SlaveSyncPos
+	            // Slave will have to move away in order to sync at (MasterSyncPos, SlaveSyncPos)!!
+	            #instMoveAbsolute.Position := #slaveSyncPosition;
+	            #statStateMachine := #statStateMachine + 20;
+	          END_IF;
+	        END_IF;
+	      ELSE
+	        // Sync on Master Distance
+	        IF NOT (#forceSlavePrePositioning) THEN
+	          // set sync parametrers to input parameters --> GearInPos
+	          // Synchronism will behave the same way the standard instruction.
+	          #instGearInPos.MasterSyncPosition := #masterSyncPosition;
+	          #instGearInPos.SlaveSyncPosition := #slaveSyncPosition;
+	          #statStateMachine := #statStateMachine + 30;
+	        ELSE
+	          // Force slave positioning to SlaveStartPos
+	          // Start Psoition is calculated s that synchonization is symetrical
+	          IF #syncProfileReference = 1 THEN
+	            // Synchronization in advance using leading value distance
+	            #instMoveAbsolute.Position := #slaveSyncPosition - #masterStartDistance / 2;
+	          ELSIF #syncProfileReference = 3 THEN
+	            // Subsequent synchronization using leading value distance
+	            #instMoveAbsolute.Position := #slaveSyncPosition + #masterStartDistance / 2;
+	          ELSE
+	            // Reserved value. Stanadard MC_GearINPos will trigg an error
+	            #instMoveAbsolute.Position := #slaveSyncPosition;
+	          END_IF;
+	          #statStateMachine := #statStateMachine + 20;
+	        END_IF;
+	        
+	      END_IF;
+	    ELSE
+	      // Reset commands and status
+	      #instAbortAccel.#Execute :=
+	      #instHalt.Execute :=
+	      #instMoveAbsolute.Execute :=
+	      #instGearInPos.Execute := FALSE;
+	      #aborting := #startSync := #inSync := #busy := #commandAborted := #error := FALSE;
+	      #status := #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	    
+	  10: // Master at Standstill
+	    // Master close to sync position AND move Slave to sync position
+	    
+	    IF #instAbortAccel.Error THEN
+	      // Slave Fault -> Stop Master
+	      #statStatus := "ERR_GIPEE_ABORTACCEL_S";
+	      #statSubStatus := #instAbortAccel.ErrorId;
+	      #statStateMachine := 910;
+	      
+	    ELSIF #instMoveAbsolute.Error THEN
+	      // Slave Fault -> Stop Master
+	      #statStatus := "ERR_GIPEE_MOVEABS_S";
+	      #statSubStatus := #instMoveAbsolute.ErrorId;
+	      #statStateMachine := 910;
+	      
+	    ELSIF #instMoveAbsolute.CommandAborted THEN
+	      // Slave command aborted -> Abort master
+	      #statStateMachine := 810;
+	      
+	    ELSIF #statAbortAcceleration THEN
+	      // Abort acceleration
+	      #instAbortAccel.#Execute := TRUE;
+	      #statAbortAcceleration := FALSE;
+	      
+	    ELSIF (#instAbortAccel.Done
+	      OR #instAbortAccel.Busy
+	      OR #instAbortAccel.CommandAborted) THEN
+	      
+	      #instAbortAccel.#Execute := FALSE;
+	      
+	    ELSIF #instMoveAbsolute.Done THEN
+	      // Master and slave in sync positions
+	      // Set sync positions to setpoint positions
+	      // PAY ATTENTION: DON'T GET "IN_SYNC" INFORMATION
+	      // IF USING ACTUAL POSITIONS INSTEAD OF SETPOINTS !!
+	      // setpoints and sync positions should be the same
+	      #instGearInPos.MasterSyncPosition := #master.ActualPosition;
+	      #instGearInPos.SlaveSyncPosition := #slave.Position;
+	      #statStateMachine := #statStateMachine + 20;
+	      
+	    ELSE
+	      #instMoveAbsolute.Execute := TRUE;
+	      // Master or Slave should be busy
+	      #startSync := TRUE;
+	    END_IF;
+	    
+	  20: // Master moving OR far from sync position
+	    // Move Slave to sync position
+	    
+	    IF #instAbortAccel.Error THEN
+	      // Slave Fault. Noaction on master
+	      #statStatus := "ERR_GIPEE_ABORTACCEL_S";
+	      #statSubStatus := #instAbortAccel.ErrorId;
+	      #statStateMachine := 950;
+	      
+	    ELSIF #instMoveAbsolute.Error THEN
+	      // Slave Fault. Noaction on master
+	      #statStatus := "ERR_GIPEE_MOVEABS_S";
+	      #statSubStatus := #instMoveAbsolute.ErrorId;
+	      #statStateMachine := 950;
+	      
+	    ELSIF #instMoveAbsolute.CommandAborted THEN
+	      // Slave command aborted. Noaction on master
+	      #statStateMachine := 850;
+	      
+	    ELSIF #statAbortAcceleration THEN
+	      // Abort acceleration
+	      #instAbortAccel.#Execute := TRUE;
+	      #statAbortAcceleration := FALSE;
+	      
+	    ELSIF (#instAbortAccel.Done
+	      OR #instAbortAccel.Busy
+	      OR #instAbortAccel.CommandAborted) THEN
+	      
+	      #instAbortAccel.#Execute := FALSE;
+	      
+	    ELSIF #instMoveAbsolute.Done THEN
+	      // slave in sync position
+	      // Set slave sync position to setpoint position
+	      // PAY ATTENTION: DON'T GET "IN_SYNC" INFORMATION
+	      // IF USING ACTUAL POSITIONS INSTEAD OF SETPOINTS !!
+	      #instGearInPos.MasterSyncPosition := #masterSyncPosition;
+	      IF #statSyncOnDynamics THEN
+	        // On dynamics: actual slave position = sync position
+	        #instGearInPos.SlaveSyncPosition := #slave.Position;
+	      ELSE
+	        // On mster distanc: actual slave position = start position
+	        #instGearInPos.SlaveSyncPosition := #slaveSyncPosition;
+	      END_IF;
+	      #statStateMachine := #statStateMachine + 10;
+	      
+	    ELSE
+	      #instMoveAbsolute.Execute := TRUE;
+	      // Master or Slave should be busy
+	      #startSync := TRUE;
+	    END_IF;
+	    
+	  30: // GearIN slave
+	    // Set - reset commands
+	    #instMoveAbsolute.Execute := FALSE;
+	    #instGearInPos.Execute := TRUE;
+	    
+	    IF #instGearInPos.Busy = TRUE THEN
+	      // GearIN Active
+	      #startSync := #instGearInPos.StartSync;
+	      #inSync := #instGearInPos.#InSync;
+	      
+	    ELSIF #instGearInPos.CommandAborted THEN
+	      // GearIN aborted
+	      #statStateMachine := 850;
+	      
+	    ELSIF #instGearInPos.Error THEN
+	      // Gear IN Fault
+	      #statStatus := "ERR_GIPEE_GEARINPOS";
+	      #statSubStatus := #instGearInPos.ErrorId;
+	      #statStateMachine := 950;
+	      
+	    END_IF;
+	    
+	  810: // Move Slave Command Aborted
+	    #startSync := FALSE;
+	    #aborting := TRUE;
+	    #statStateMachine := 850;
+	    
+	  850: // GearIN Command aborted
+	    #error := #busy := #aborting := #startSync := #inSync := FALSE;
+	    #status := #subStatus := "ERR_NO_ERROR";
+	    #commandAborted := TRUE;
+	    IF NOT (#execute) THEN
+	      #statStateMachine := 0;
+	    END_IF;
+	    
+	  900: // Move Master Error
+	    // -> Stop slave
+	    #startSync := FALSE;
+	    #instHalt.Execute := TRUE;
+	    IF #instHalt.CommandAborted OR
+	      #instHalt.Error OR
+	      #instHalt.Done = TRUE THEN
+	      // Whatever appens (Abort / Fault / Done) first fault is feedback
+	      #statStateMachine := 950;
+	    ELSE
+	      // Halt slave in progress
+	      #aborting := TRUE;
+	    END_IF;
+	    
+	  910: // Move Slave Error
+	    #startSync := FALSE;
+	    #aborting := TRUE;
+	    #statStateMachine := 950;
+	    
+	  950: // GearIN Error
+	    #commandAborted := #busy := #aborting := #startSync := #inSync := FALSE;
+	    #error := TRUE;
+	    #status := #statStatus;
+	    #subStatus := #statSubStatus;
+	    IF NOT (#execute) THEN
+	      // Immediatly Reset commands and status
+	      // No reset of commads in previous states so errorID can be tracked
+	      #instHalt.Execute :=
+	      #instMoveAbsolute.Execute :=
+	      #instGearInPos.Execute := FALSE;
+	      #error := FALSE;
+	      #status := #subStatus := "ERR_NO_ERROR";
+	      #statAbortAcceleration := FALSE;
+	      // Set State machine to initial state
+	      #statStateMachine := 0;
+	    END_IF;
+	    
+	  ELSE  // Statement section ELSE
+	    #statStateMachine := 0;
+	    
+	END_CASE;
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

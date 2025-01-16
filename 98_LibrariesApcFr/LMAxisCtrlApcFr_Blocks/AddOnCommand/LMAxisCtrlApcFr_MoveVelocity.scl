@@ -1,0 +1,50 @@
+﻿FUNCTION_BLOCK "LMAxisCtrlApcFr_MoveVelocity"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ExecuteMoveVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      Velocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      Acceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      Deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      Jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      Direction { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      VelocityChangeOnTheFly { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+   END_VAR
+
+   VAR_IN_OUT 
+      AxisFB_Interface : "LMAxisCtrlApcFr_TypeInterface";
+   END_VAR
+
+   VAR 
+      statEdgeUp { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: First call of FB
+      statEdgeDown { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStateOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of enable for edge detection
+   END_VAR
+
+
+BEGIN
+	//=====================================================================================================
+	#statEdgeUp := #ExecuteMoveVelocity AND NOT #statStateOld;
+	#statEdgeDown := NOT #ExecuteMoveVelocity AND #statStateOld;
+	#statStateOld := #ExecuteMoveVelocity;
+	
+	REGION EdgeUp
+	    IF #statEdgeUp THEN
+	        #AxisFB_Interface.In.moveVelocity := TRUE;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.velocity := #Velocity;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.acceleration := #Acceleration;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.deceleration := #Deceleration;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.jerk := #Jerk;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.direction := #Direction;
+	        #AxisFB_Interface.In.dataAxisConfig.moveVelocity.velocityChangeOnTheFly := #VelocityChangeOnTheFly;
+	    END_IF;
+	END_REGION
+	
+	REGION EdgeDown
+	    IF #statEdgeDown THEN
+	        #AxisFB_Interface.In.moveVelocity := FALSE;
+	    END_IF;
+	END_REGION
+	//=====================================================================================================
+END_FUNCTION_BLOCK
+

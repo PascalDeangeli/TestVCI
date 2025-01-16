@@ -1,0 +1,817 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output">
+    <Member Name="configurationOmac" Datatype="&quot;typeLPMLV30_Configuration&quot;" />
+    <Member Name="configurationLanguage" Datatype="Int" />
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Temp">
+    <Member Name="tempIndex" Datatype="Int" />
+    <Member Name="tempLocalSC" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">State complete signal (one cycle)</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">State complete signal (one cycle)</MultiLanguageText>
+        <MultiLanguageText Lang="de-DE">State complete signal (one cycle)</MultiLanguageText>
+      </Comment>
+    </Member>
+  </Section>
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <Name>LOmacAPcFr_StartupConfiguration</Name>
+      <Namespace />
+      <Number>39</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="5" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="6" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>false</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="22">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>false</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="23">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="24">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="25">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="26">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="27">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="28">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="29">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="30">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="31">
+      <Symbol>
+        <Component Name="configurationOmac" />
+        <Component Name="disabledUnitModes" />
+      </Symbol>
+    </Access>
+    <Call UId="32">
+      <CallInfo Name="LPMLV30_ConfigureDisabledUnitModes" BlockType="FC">
+        <Parameter Name="ProductionModeDisable" Section="Input" Type="Bool" />
+        <Parameter Name="MaintenanceModeDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode01Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode02Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode03Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode04Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode05Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode06Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode07Disable" Section="Input" Type="Bool" />
+        <Parameter Name="UserMode08Disable" Section="Input" Type="Bool" />
+        <Parameter Name="disabledUnitModes" Section="Output" Type="Array[0..#LPMLV30_MAX_MODES_UPPER_LIM] of Bool" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="33">
+      <Powerrail />
+      <NameCon UId="32" Name="en" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="21" />
+      <NameCon UId="32" Name="ProductionModeDisable" />
+    </Wire>
+    <Wire UId="35">
+      <IdentCon UId="22" />
+      <NameCon UId="32" Name="MaintenanceModeDisable" />
+    </Wire>
+    <Wire UId="36">
+      <IdentCon UId="23" />
+      <NameCon UId="32" Name="UserMode01Disable" />
+    </Wire>
+    <Wire UId="37">
+      <IdentCon UId="24" />
+      <NameCon UId="32" Name="UserMode02Disable" />
+    </Wire>
+    <Wire UId="38">
+      <IdentCon UId="25" />
+      <NameCon UId="32" Name="UserMode03Disable" />
+    </Wire>
+    <Wire UId="39">
+      <IdentCon UId="26" />
+      <NameCon UId="32" Name="UserMode04Disable" />
+    </Wire>
+    <Wire UId="40">
+      <IdentCon UId="27" />
+      <NameCon UId="32" Name="UserMode05Disable" />
+    </Wire>
+    <Wire UId="41">
+      <IdentCon UId="28" />
+      <NameCon UId="32" Name="UserMode06Disable" />
+    </Wire>
+    <Wire UId="42">
+      <IdentCon UId="29" />
+      <NameCon UId="32" Name="UserMode07Disable" />
+    </Wire>
+    <Wire UId="43">
+      <IdentCon UId="30" />
+      <NameCon UId="32" Name="UserMode08Disable" />
+    </Wire>
+    <Wire UId="44">
+      <NameCon UId="32" Name="disabledUnitModes" />
+      <IdentCon UId="31" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="7" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>Mode configuration</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Mode configuration</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="11" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="22">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="23">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="24">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="25">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="26">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="27">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>false</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="28">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>false</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="29">
+      <Symbol>
+        <Component Name="configurationOmac" />
+        <Component Name="disabledStatesInUnitModes" AccessModifier="Array">
+          <Access Scope="GlobalConstant">
+            <Constant Name="LPMLV30_MODE_PRODUCTION" />
+          </Access>
+        </Component>
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="30">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="31">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="32">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="33">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="34">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="35">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="36">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="37">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="38">
+      <Symbol>
+        <Component Name="configurationOmac" />
+        <Component Name="disabledStatesInUnitModes" AccessModifier="Array">
+          <Access Scope="GlobalConstant">
+            <Constant Name="LPMLV30_MODE_MANUAL" />
+          </Access>
+        </Component>
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="39">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="40">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="41">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="42">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="43">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="44">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="45">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="46">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>true</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="47">
+      <Symbol>
+        <Component Name="configurationOmac" />
+        <Component Name="disabledStatesInUnitModes" AccessModifier="Array">
+          <Access Scope="GlobalConstant">
+            <Constant Name="LPMLV30_MODE_MAINTENANCE" />
+          </Access>
+        </Component>
+      </Symbol>
+    </Access>
+    <Call UId="48">
+      <CallInfo Name="LPMLV30_ConfigureDisabledStates" BlockType="FC">
+        <Parameter Name="HoldingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="HeldDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnholdingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendedDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnsuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompletingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompleteDisable" Section="Input" Type="Bool" />
+        <Parameter Name="disabledStates" Section="Output" Type="DInt" />
+      </CallInfo>
+    </Call>
+    <Call UId="49">
+      <CallInfo Name="LPMLV30_ConfigureDisabledStates" BlockType="FC">
+        <Parameter Name="HoldingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="HeldDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnholdingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendedDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnsuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompletingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompleteDisable" Section="Input" Type="Bool" />
+        <Parameter Name="disabledStates" Section="Output" Type="DInt" />
+      </CallInfo>
+    </Call>
+    <Call UId="50">
+      <CallInfo Name="LPMLV30_ConfigureDisabledStates" BlockType="FC">
+        <Parameter Name="HoldingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="HeldDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnholdingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="SuspendedDisable" Section="Input" Type="Bool" />
+        <Parameter Name="UnsuspendingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompletingDisable" Section="Input" Type="Bool" />
+        <Parameter Name="CompleteDisable" Section="Input" Type="Bool" />
+        <Parameter Name="disabledStates" Section="Output" Type="DInt" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="51">
+      <Powerrail />
+      <NameCon UId="48" Name="en" />
+    </Wire>
+    <Wire UId="52">
+      <IdentCon UId="21" />
+      <NameCon UId="48" Name="HoldingDisable" />
+    </Wire>
+    <Wire UId="53">
+      <IdentCon UId="22" />
+      <NameCon UId="48" Name="HeldDisable" />
+    </Wire>
+    <Wire UId="54">
+      <IdentCon UId="23" />
+      <NameCon UId="48" Name="UnholdingDisable" />
+    </Wire>
+    <Wire UId="55">
+      <IdentCon UId="24" />
+      <NameCon UId="48" Name="SuspendingDisable" />
+    </Wire>
+    <Wire UId="56">
+      <IdentCon UId="25" />
+      <NameCon UId="48" Name="SuspendedDisable" />
+    </Wire>
+    <Wire UId="57">
+      <IdentCon UId="26" />
+      <NameCon UId="48" Name="UnsuspendingDisable" />
+    </Wire>
+    <Wire UId="58">
+      <IdentCon UId="27" />
+      <NameCon UId="48" Name="CompletingDisable" />
+    </Wire>
+    <Wire UId="59">
+      <IdentCon UId="28" />
+      <NameCon UId="48" Name="CompleteDisable" />
+    </Wire>
+    <Wire UId="60">
+      <NameCon UId="48" Name="eno" />
+      <NameCon UId="49" Name="en" />
+    </Wire>
+    <Wire UId="61">
+      <NameCon UId="48" Name="disabledStates" />
+      <IdentCon UId="29" />
+    </Wire>
+    <Wire UId="62">
+      <IdentCon UId="30" />
+      <NameCon UId="49" Name="HoldingDisable" />
+    </Wire>
+    <Wire UId="63">
+      <IdentCon UId="31" />
+      <NameCon UId="49" Name="HeldDisable" />
+    </Wire>
+    <Wire UId="64">
+      <IdentCon UId="32" />
+      <NameCon UId="49" Name="UnholdingDisable" />
+    </Wire>
+    <Wire UId="65">
+      <IdentCon UId="33" />
+      <NameCon UId="49" Name="SuspendingDisable" />
+    </Wire>
+    <Wire UId="66">
+      <IdentCon UId="34" />
+      <NameCon UId="49" Name="SuspendedDisable" />
+    </Wire>
+    <Wire UId="67">
+      <IdentCon UId="35" />
+      <NameCon UId="49" Name="UnsuspendingDisable" />
+    </Wire>
+    <Wire UId="68">
+      <IdentCon UId="36" />
+      <NameCon UId="49" Name="CompletingDisable" />
+    </Wire>
+    <Wire UId="69">
+      <IdentCon UId="37" />
+      <NameCon UId="49" Name="CompleteDisable" />
+    </Wire>
+    <Wire UId="70">
+      <NameCon UId="49" Name="eno" />
+      <NameCon UId="50" Name="en" />
+    </Wire>
+    <Wire UId="71">
+      <NameCon UId="49" Name="disabledStates" />
+      <IdentCon UId="38" />
+    </Wire>
+    <Wire UId="72">
+      <IdentCon UId="39" />
+      <NameCon UId="50" Name="HoldingDisable" />
+    </Wire>
+    <Wire UId="73">
+      <IdentCon UId="40" />
+      <NameCon UId="50" Name="HeldDisable" />
+    </Wire>
+    <Wire UId="74">
+      <IdentCon UId="41" />
+      <NameCon UId="50" Name="UnholdingDisable" />
+    </Wire>
+    <Wire UId="75">
+      <IdentCon UId="42" />
+      <NameCon UId="50" Name="SuspendingDisable" />
+    </Wire>
+    <Wire UId="76">
+      <IdentCon UId="43" />
+      <NameCon UId="50" Name="SuspendedDisable" />
+    </Wire>
+    <Wire UId="77">
+      <IdentCon UId="44" />
+      <NameCon UId="50" Name="UnsuspendingDisable" />
+    </Wire>
+    <Wire UId="78">
+      <IdentCon UId="45" />
+      <NameCon UId="50" Name="CompletingDisable" />
+    </Wire>
+    <Wire UId="79">
+      <IdentCon UId="46" />
+      <NameCon UId="50" Name="CompleteDisable" />
+    </Wire>
+    <Wire UId="80">
+      <NameCon UId="50" Name="disabledStates" />
+      <IdentCon UId="47" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="12" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="13" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="17" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="18" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text>State configuration</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>State configuration</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="1C" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Int</ConstantType>
+        <ConstantValue>0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="configurationOmac" />
+        <Component Name="PackML_Version" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalConstant" UId="23">
+      <Constant Name="LPMLV30_LANGUAGE_1" />
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="configurationLanguage" />
+      </Symbol>
+    </Access>
+    <Part Name="Move" UId="25" DisabledENO="true">
+      <TemplateValue Name="Card" Type="Cardinality">1</TemplateValue>
+    </Part>
+    <Part Name="Move" UId="26" DisabledENO="true">
+      <TemplateValue Name="Card" Type="Cardinality">1</TemplateValue>
+    </Part>
+  </Parts>
+  <Wires>
+    <Wire UId="27">
+      <Powerrail />
+      <NameCon UId="25" Name="en" />
+    </Wire>
+    <Wire UId="28">
+      <IdentCon UId="21" />
+      <NameCon UId="25" Name="in" />
+    </Wire>
+    <Wire UId="29">
+      <NameCon UId="25" Name="eno" />
+      <NameCon UId="26" Name="en" />
+    </Wire>
+    <Wire UId="30">
+      <NameCon UId="25" Name="out1" />
+      <IdentCon UId="22" />
+    </Wire>
+    <Wire UId="31">
+      <IdentCon UId="23" />
+      <NameCon UId="26" Name="in" />
+    </Wire>
+    <Wire UId="32">
+      <NameCon UId="26" Name="out1" />
+      <IdentCon UId="24" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="1D" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Version:
+0: ANSI/ISA-TR88.00.02-2015 PackMLV30; 1: PackML Companion Specification 1.00.01
+
+Language:
+LPMLV30_GetUnitModeStateNamesAsString: Requested language (LPMLV30_LANGUAGE_1, LPMLV30_LANGUAGE_2, ...)</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="20" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="21" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="22" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Version &amp; Language configuration</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="25" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="27" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="28" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="29" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2A" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2B" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

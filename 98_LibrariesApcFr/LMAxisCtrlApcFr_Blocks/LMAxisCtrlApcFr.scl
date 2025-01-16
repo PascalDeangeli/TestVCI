@@ -1,0 +1,321 @@
+﻿FUNCTION_BLOCK "LMAxisCtrlApcFr"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      FirstCycle : Bool;
+      MonitoringAxisFB_Nb : Int := 1;
+   END_VAR
+
+   VAR_IN_OUT 
+      Configuration : "LMAxisCtrlApcFr_TypeConfiguration";
+      InterfaceAxisFB : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LMAxisCtrlApcFr_TypeInterface";
+      AllTOStatus : "LMAxisCtrlApcFr_TypeAllTOStatus";
+   END_VAR
+
+   VAR 
+      i { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      instLAxisCtrlApcFr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LAxisCtrlApcFr_Axis";
+      instTOStatusWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LAxisCtrl_AxisStatusWord";
+      instTOErrorWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LAxisCtrl_AxisErrorWord";
+      instHystoricBuffer_AxisFB { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LAxisCtrlApcFr_HystoricBuffer";
+      instLMAxisCtrlApcFr_AxisTOConfiguration : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LMAxisCtrlApcFr_AxisTOConfiguration";
+   END_VAR
+
+
+BEGIN
+	//----------------------------------------------------------------
+	//Initialization
+	//-----------------------------------------------------------------
+	REGION INIT
+	    IF #FirstCycle THEN
+	        FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	            #InterfaceAxisFB[#i].In.axis := #Configuration.axisTOReference[#i];
+	            #InterfaceAxisFB[#i].AxisName := #Configuration.axisName[#i];
+	            
+	            #instLMAxisCtrlApcFr_AxisTOConfiguration[#i](axis := "DB_Axis".Configuration.axisTOReference[#i],
+	                                                         error => "DB_Axis".Configuration.axisTOConfiguration[#i].error,
+	                                                         errorID => "DB_Axis".Configuration.axisTOConfiguration[#i].errorID,
+	                                                         isVirtual => "DB_Axis".Configuration.axisTOConfiguration[#i].isVitual,
+	                                                         isLinear => "DB_Axis".Configuration.axisTOConfiguration[#i].isLinear,
+	                                                         isRotary => "DB_Axis".Configuration.axisTOConfiguration[#i].isRotary);
+	        END_FOR;
+	    END_IF;
+	END_REGION
+	//-----------------------------------------------------------------
+	//-----------------------------------------------------------------
+	
+	//----------------------------------------------------------------
+	//AxisCtrlApcFr
+	//-----------------------------------------------------------------
+	REGION MAIN
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF (#i = #MonitoringAxisFB_Nb) THEN
+	            #instLAxisCtrlApcFr[#i](enable := #InterfaceAxisFB[#i].In.enable,
+	                                    stateSafetyActive := #InterfaceAxisFB[#i].In.stateSafetyActive,
+	                                    stateS120InfeedInOperation := #InterfaceAxisFB[#i].In.stateS120InfeedInOperation,
+	                                    enableAxis := #InterfaceAxisFB[#i].In.enableAxis,
+	                                    resetAxis := #InterfaceAxisFB[#i].In.resetAxis,
+	                                    openBrake := #InterfaceAxisFB[#i].In.openBrake,
+	                                    jogForward := #InterfaceAxisFB[#i].In.jogForward,
+	                                    jogBackward := #InterfaceAxisFB[#i].In.jogBackward,
+	                                    moveVelocity := #InterfaceAxisFB[#i].In.moveVelocity,
+	                                    stop := #InterfaceAxisFB[#i].In.stop,
+	                                    eStop := #InterfaceAxisFB[#i].In.eStop,
+	                                    torqueLimiting := #InterfaceAxisFB[#i].In.torqueLimiting,
+	                                    homing := #InterfaceAxisFB[#i].In.homing,
+	                                    homingToFixedStop := #InterfaceAxisFB[#i].In.homingToFixedStop,
+	                                    homingOnSensor := #InterfaceAxisFB[#i].In.homingOnSensor,
+	                                    posRelative := #InterfaceAxisFB[#i].In.posRelative,
+	                                    posAbsolute := #InterfaceAxisFB[#i].In.posAbsolute,
+	                                    posSuperimposed := #InterfaceAxisFB[#i].In.posSuperimposed,
+	                                    haltSuperimposed := #InterfaceAxisFB[#i].In.haltSuperimposed,
+	                                    gearInRelative := #InterfaceAxisFB[#i].In.gearInRelative,
+	                                    gearInAbsolute := #InterfaceAxisFB[#i].In.gearInAbsolute,
+	                                    gearInVelocity := #InterfaceAxisFB[#i].In.gearInVelocity,
+	                                    gearOutCamOut := #InterfaceAxisFB[#i].In.gearOutCamOut,
+	                                    camIn := #InterfaceAxisFB[#i].In.camIn,
+	                                    camInStandStill := #InterfaceAxisFB[#i].In.camInStandStill,
+	                                    camInChangeOnTheFly := #InterfaceAxisFB[#i].In.camInChangeOnTheFly,
+	                                    phasing := #InterfaceAxisFB[#i].In.phasing,
+	                                    offset := #InterfaceAxisFB[#i].In.offset,
+	                                    actDesactLimitSwitches := #InterfaceAxisFB[#i].In.actDesactLimitSwitches,
+	                                    changeModulo := #InterfaceAxisFB[#i].In.changeModulo,
+	                                    startEndLessMode := #InterfaceAxisFB[#i].In.startEndLessMode,
+	                                    simulationOnOff := #InterfaceAxisFB[#i].In.simulationOnOff,
+	                                    resetMaxValues := #InterfaceAxisFB[#i].In.resetMaxValues,
+	                                    override := #InterfaceAxisFB[#i].In.override,
+	                                    axis := #Configuration.axisTOReference[#i],
+	                                    master := #InterfaceAxisFB[#i].In.master,
+	                                    cam1 := #InterfaceAxisFB[#i].In.cam1,
+	                                    cam2 := #InterfaceAxisFB[#i].In.cam2,
+	                                    dataAxisConfig := #InterfaceAxisFB[#i].In.dataAxisConfig,
+	                                    valid => #InterfaceAxisFB[#i].Out.valid,
+	                                    busy => #InterfaceAxisFB[#i].Out.busy,
+	                                    error => #InterfaceAxisFB[#i].Out.error,
+	                                    status => #InterfaceAxisFB[#i].Out.status,
+	                                    errorMC => #InterfaceAxisFB[#i].Out.errorMC,
+	                                    errorID => #InterfaceAxisFB[#i].Out.errorID,
+	                                    driveReadyForOperation => #InterfaceAxisFB[#i].Out.driveReadyForOperation,
+	                                    axisEnabled => #InterfaceAxisFB[#i].Out.axisEnabled,
+	                                    axisHomed => #InterfaceAxisFB[#i].Out.axisHomed,
+	                                    axisInPosition => #InterfaceAxisFB[#i].Out.axisInPosition,
+	                                    axisInStandstill => #InterfaceAxisFB[#i].Out.axisInStandstill,
+	                                    axisInVelocity => #InterfaceAxisFB[#i].Out.axisInVelocity,
+	                                    axisInLimitation => #InterfaceAxisFB[#i].Out.axisInLimitation,
+	                                    axisInClamping => #InterfaceAxisFB[#i].Out.axisInClamping,
+	                                    axisInSimulation => #InterfaceAxisFB[#i].Out.axisInSimulation,
+	                                    axisCamInSelected => #InterfaceAxisFB[#i].Out.axisCamInSelected,
+	                                    axisInSynchronizing => #InterfaceAxisFB[#i].Out.axisInSynchronizing,
+	                                    axisInSync => #InterfaceAxisFB[#i].Out.axisInSync,
+	                                    camInStandStillDone => #InterfaceAxisFB[#i].Out.camInStandStillDone,
+	                                    camInStandStillBusy => #InterfaceAxisFB[#i].Out.camInStandStillBusy,
+	                                    camInChangeOnTheFlyDone => #InterfaceAxisFB[#i].Out.camInChangeOnTheFlyDone,
+	                                    camInChangeOnTheFlylBusy => #InterfaceAxisFB[#i].Out.camInChangeOnTheFlylBusy,
+	                                    eStopDone => #InterfaceAxisFB[#i].Out.eStopDone,
+	                                    eStopBusy => #InterfaceAxisFB[#i].Out.eStopBusy,
+	                                    homingToFixedStopDone => #InterfaceAxisFB[#i].Out.homingToFixedStopDone,
+	                                    homingToFixedStopBusy => #InterfaceAxisFB[#i].Out.homingToFixedStopBusy,
+	                                    homingOnSensorDone => #InterfaceAxisFB[#i].Out.homingOnSensorDone,
+	                                    homingOnSensorBusy => #InterfaceAxisFB[#i].Out.homingOnSensorBusy,
+	                                    actDesactLimitSwitchesDone => #InterfaceAxisFB[#i].Out.actDesactLimitSwitchesDone,
+	                                    actDesactLimitSwitchesBusy => #InterfaceAxisFB[#i].Out.actDesactLimitSwitchesBusy,
+	                                    changeModuloDone => #InterfaceAxisFB[#i].Out.changeModuloDone,
+	                                    changeModuloBusy => #InterfaceAxisFB[#i].Out.changeModuloBusy,
+	                                    endLessModeDone => #InterfaceAxisFB[#i].Out.endLessModeDone,
+	                                    endLessModeBusy => #InterfaceAxisFB[#i].Out.endLessModeBusy,
+	                                    simulationOnDone => #InterfaceAxisFB[#i].Out.simulationOnDone,
+	                                    simulationOnBusy => #InterfaceAxisFB[#i].Out.simulationOnBusy,
+	                                    actualPosition => #InterfaceAxisFB[#i].Out.actualPosition,
+	                                    actualVelocity => #InterfaceAxisFB[#i].Out.actualVelocity,
+	                                    actualSpeed => #InterfaceAxisFB[#i].Out.actualSpeed,
+	                                    actualAcceleration => #InterfaceAxisFB[#i].Out.actualAcceleration,
+	                                    actualTorque => #InterfaceAxisFB[#i].Out.actualTorque,
+	                                    actualTorqueMax => #InterfaceAxisFB[#i].Out.actualTorqueMax,
+	                                    actualFollowingError => #InterfaceAxisFB[#i].Out.actualFollowingError,
+	                                    actualFollowingErrorMax => #InterfaceAxisFB[#i].Out.actualFollowingErrorMax,
+	                                    camSelected => #InterfaceAxisFB[#i].Out.camSelected,
+	                                    camUsed => #InterfaceAxisFB[#i].Out.camUsed,
+	                                    HistoricBuffer => #InterfaceAxisFB[#i].Out.HistoricBuffer,
+	                                    outputsLAxisCtrl_Axis => #InterfaceAxisFB[#i].Out.outputsLAxisCtrl_Axis,
+	                                    outputsStatusWordTO => #InterfaceAxisFB[#i].Out.outputsStatusWordTO);
+	        ELSE
+	            #instLAxisCtrlApcFr[#i](enable := #InterfaceAxisFB[#i].In.enable,
+	                                    stateSafetyActive := #InterfaceAxisFB[#i].In.stateSafetyActive,
+	                                    stateS120InfeedInOperation := #InterfaceAxisFB[#i].In.stateS120InfeedInOperation,
+	                                    enableAxis := #InterfaceAxisFB[#i].In.enableAxis,
+	                                    resetAxis := #InterfaceAxisFB[#i].In.resetAxis,
+	                                    openBrake := #InterfaceAxisFB[#i].In.openBrake,
+	                                    jogForward := #InterfaceAxisFB[#i].In.jogForward,
+	                                    jogBackward := #InterfaceAxisFB[#i].In.jogBackward,
+	                                    moveVelocity := #InterfaceAxisFB[#i].In.moveVelocity,
+	                                    stop := #InterfaceAxisFB[#i].In.stop,
+	                                    eStop := #InterfaceAxisFB[#i].In.eStop,
+	                                    torqueLimiting := #InterfaceAxisFB[#i].In.torqueLimiting,
+	                                    homing := #InterfaceAxisFB[#i].In.homing,
+	                                    homingToFixedStop := #InterfaceAxisFB[#i].In.homingToFixedStop,
+	                                    homingOnSensor := #InterfaceAxisFB[#i].In.homingOnSensor,
+	                                    posRelative := #InterfaceAxisFB[#i].In.posRelative,
+	                                    posAbsolute := #InterfaceAxisFB[#i].In.posAbsolute,
+	                                    posSuperimposed := #InterfaceAxisFB[#i].In.posSuperimposed,
+	                                    haltSuperimposed := #InterfaceAxisFB[#i].In.haltSuperimposed,
+	                                    gearInRelative := #InterfaceAxisFB[#i].In.gearInRelative,
+	                                    gearInAbsolute := #InterfaceAxisFB[#i].In.gearInAbsolute,
+	                                    gearInVelocity := #InterfaceAxisFB[#i].In.gearInVelocity,
+	                                    gearOutCamOut := #InterfaceAxisFB[#i].In.gearOutCamOut,
+	                                    camIn := #InterfaceAxisFB[#i].In.camIn,
+	                                    camInStandStill := #InterfaceAxisFB[#i].In.camInStandStill,
+	                                    camInChangeOnTheFly := #InterfaceAxisFB[#i].In.camInChangeOnTheFly,
+	                                    phasing := #InterfaceAxisFB[#i].In.phasing,
+	                                    offset := #InterfaceAxisFB[#i].In.offset,
+	                                    actDesactLimitSwitches := #InterfaceAxisFB[#i].In.actDesactLimitSwitches,
+	                                    changeModulo := #InterfaceAxisFB[#i].In.changeModulo,
+	                                    startEndLessMode := #InterfaceAxisFB[#i].In.startEndLessMode,
+	                                    simulationOnOff := #InterfaceAxisFB[#i].In.simulationOnOff,
+	                                    resetMaxValues := #InterfaceAxisFB[#i].In.resetMaxValues,
+	                                    override := #InterfaceAxisFB[#i].In.override,
+	                                    axis := #Configuration.axisTOReference[#i],
+	                                    master := #InterfaceAxisFB[#i].In.master,
+	                                    cam1 := #InterfaceAxisFB[#i].In.cam1,
+	                                    cam2 := #InterfaceAxisFB[#i].In.cam2,
+	                                    dataAxisConfig := #InterfaceAxisFB[#i].In.dataAxisConfig,
+	                                    valid => #InterfaceAxisFB[#i].Out.valid,
+	                                    busy => #InterfaceAxisFB[#i].Out.busy,
+	                                    error => #InterfaceAxisFB[#i].Out.error,
+	                                    status => #InterfaceAxisFB[#i].Out.status,
+	                                    errorMC => #InterfaceAxisFB[#i].Out.errorMC,
+	                                    errorID => #InterfaceAxisFB[#i].Out.errorID,
+	                                    driveReadyForOperation => #InterfaceAxisFB[#i].Out.driveReadyForOperation,
+	                                    axisEnabled => #InterfaceAxisFB[#i].Out.axisEnabled,
+	                                    axisHomed => #InterfaceAxisFB[#i].Out.axisHomed,
+	                                    axisInPosition => #InterfaceAxisFB[#i].Out.axisInPosition,
+	                                    axisInStandstill => #InterfaceAxisFB[#i].Out.axisInStandstill,
+	                                    axisInVelocity => #InterfaceAxisFB[#i].Out.axisInVelocity,
+	                                    axisInLimitation => #InterfaceAxisFB[#i].Out.axisInLimitation,
+	                                    axisInClamping => #InterfaceAxisFB[#i].Out.axisInClamping,
+	                                    axisInSimulation => #InterfaceAxisFB[#i].Out.axisInSimulation,
+	                                    axisCamInSelected => #InterfaceAxisFB[#i].Out.axisCamInSelected,
+	                                    axisInSynchronizing => #InterfaceAxisFB[#i].Out.axisInSynchronizing,
+	                                    axisInSync => #InterfaceAxisFB[#i].Out.axisInSync,
+	                                    camInStandStillDone => #InterfaceAxisFB[#i].Out.camInStandStillDone,
+	                                    camInStandStillBusy => #InterfaceAxisFB[#i].Out.camInStandStillBusy,
+	                                    camInChangeOnTheFlyDone => #InterfaceAxisFB[#i].Out.camInChangeOnTheFlyDone,
+	                                    camInChangeOnTheFlylBusy => #InterfaceAxisFB[#i].Out.camInChangeOnTheFlylBusy,
+	                                    eStopDone => #InterfaceAxisFB[#i].Out.eStopDone,
+	                                    eStopBusy => #InterfaceAxisFB[#i].Out.eStopBusy,
+	                                    homingToFixedStopDone => #InterfaceAxisFB[#i].Out.homingToFixedStopDone,
+	                                    homingToFixedStopBusy => #InterfaceAxisFB[#i].Out.homingToFixedStopBusy,
+	                                    homingOnSensorDone => #InterfaceAxisFB[#i].Out.homingOnSensorDone,
+	                                    homingOnSensorBusy => #InterfaceAxisFB[#i].Out.homingOnSensorBusy,
+	                                    actDesactLimitSwitchesDone => #InterfaceAxisFB[#i].Out.actDesactLimitSwitchesDone,
+	                                    actDesactLimitSwitchesBusy => #InterfaceAxisFB[#i].Out.actDesactLimitSwitchesBusy,
+	                                    changeModuloDone => #InterfaceAxisFB[#i].Out.changeModuloDone,
+	                                    changeModuloBusy => #InterfaceAxisFB[#i].Out.changeModuloBusy,
+	                                    endLessModeDone => #InterfaceAxisFB[#i].Out.endLessModeDone,
+	                                    endLessModeBusy => #InterfaceAxisFB[#i].Out.endLessModeBusy,
+	                                    simulationOnDone => #InterfaceAxisFB[#i].Out.simulationOnDone,
+	                                    simulationOnBusy => #InterfaceAxisFB[#i].Out.simulationOnBusy,
+	                                    actualPosition => #InterfaceAxisFB[#i].Out.actualPosition,
+	                                    actualVelocity => #InterfaceAxisFB[#i].Out.actualVelocity,
+	                                    actualSpeed => #InterfaceAxisFB[#i].Out.actualSpeed,
+	                                    actualAcceleration => #InterfaceAxisFB[#i].Out.actualAcceleration,
+	                                    actualTorque => #InterfaceAxisFB[#i].Out.actualTorque,
+	                                    actualTorqueMax => #InterfaceAxisFB[#i].Out.actualTorqueMax,
+	                                    actualFollowingError => #InterfaceAxisFB[#i].Out.actualFollowingError,
+	                                    actualFollowingErrorMax => #InterfaceAxisFB[#i].Out.actualFollowingErrorMax,
+	                                    camSelected => #InterfaceAxisFB[#i].Out.camSelected,
+	                                    camUsed => #InterfaceAxisFB[#i].Out.camUsed,
+	                                    HistoricBuffer => #InterfaceAxisFB[#i].Out.HistoricBuffer,
+	                                    outputsLAxisCtrl_Axis => #InterfaceAxisFB[#i].Out.outputsLAxisCtrl_Axis,
+	                                    outputsStatusWordTO => #InterfaceAxisFB[#i].Out.outputsStatusWordTO);
+	        END_IF;
+	    END_FOR;
+	END_REGION
+	//-----------------------------------------------------------------
+	//-----------------------------------------------------------------
+	
+	//----------------------------------------------------------------
+	//All TO Status
+	//-----------------------------------------------------------------
+	REGION ALL_TO_STATUS
+	    //ALL TO enabled
+	    #AllTOStatus.Enabled := TRUE;
+	    #AllTOStatus.FirstAxisNotEnabled := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF NOT #instLAxisCtrlApcFr[#i].outputsStatusWordTO.enable THEN
+	            #AllTOStatus.Enabled := FALSE;
+	            #AllTOStatus.FirstAxisNotEnabled := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //All TO Disabled
+	    #AllTOStatus.Disabled := TRUE;
+	    #AllTOStatus.FirstAxisNotDisabled := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF #instLAxisCtrlApcFr[#i].outputsStatusWordTO.enable THEN
+	            #AllTOStatus.Disabled := FALSE;
+	            #AllTOStatus.FirstAxisNotDisabled := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //All TO Disabled
+	    #AllTOStatus.Homed := TRUE;
+	    #AllTOStatus.FirstAxisNotHomed := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF NOT #instLAxisCtrlApcFr[#i].outputsStatusWordTO.homingDone THEN
+	            #AllTOStatus.Homed := FALSE;
+	            #AllTOStatus.FirstAxisNotHomed := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //All TO Standstill
+	    #AllTOStatus.InStandstill := TRUE;
+	    #AllTOStatus.FirstAxisNotStandstill := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF NOT #instLAxisCtrlApcFr[#i].outputsStatusWordTO.standstill THEN
+	            #AllTOStatus.InStandstill := FALSE;
+	            #AllTOStatus.FirstAxisNotStandstill := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //All TO Simulated
+	    #AllTOStatus.InSimulation := TRUE;
+	    #AllTOStatus.FirstAxisNotSimulated := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF NOT #instLAxisCtrlApcFr[#i].axisInSimulation THEN
+	            #AllTOStatus.InSimulation := FALSE;
+	            #AllTOStatus.FirstAxisNotSimulated := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //All TO Real
+	    #AllTOStatus.InReal := TRUE;
+	    #AllTOStatus.FirstAxisNotReal := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF NOT #instLAxisCtrlApcFr[#i].axisInSimulation THEN
+	            #AllTOStatus.InReal := FALSE;
+	            #AllTOStatus.FirstAxisNotReal := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //One Axis in Error
+	    #AllTOStatus.OneAxisinError := FALSE;
+	    #AllTOStatus.FirstAxisinError := 0;
+	    FOR #i := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	        IF #instLAxisCtrlApcFr[#i].error THEN
+	            #AllTOStatus.OneAxisinError := TRUE;
+	            #AllTOStatus.FirstAxisinError := #i;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	END_REGION
+	//-----------------------------------------------------------------
+	//-----------------------------------------------------------------
+	
+END_FUNCTION_BLOCK
+

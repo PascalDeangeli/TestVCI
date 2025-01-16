@@ -1,0 +1,186 @@
+﻿FUNCTION_BLOCK "LOmacApcFr_CumulativeTimeSplitDINT"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ConfigurationOmac : "typeLPMLV30_Configuration" := ([12(FALSE), 20(TRUE)], [32(0)], ());
+      ModeCumulativeTime : Array[0.."LPMLV30_MODES_UPPER_LIM"] of DInt;
+      StateCumulativeTime : Array[0.."LPMLV30_MODES_UPPER_LIM", 0.."LPMLV30_STATES_UPPER_LIM"] of DInt;
+   END_VAR
+
+   VAR_OUTPUT 
+      CounterCumulativeTime : Array[0.."LPMLV30_MODES_UPPER_LIM"] of "LMOmacApcFr_TypeCounterCumulativeTime";
+   END_VAR
+
+   VAR_TEMP 
+      iMode : DInt;
+      iState : DInt;
+   END_VAR
+
+
+BEGIN
+	//Cumulative counter of Mode time
+	FOR #iMode := 0 TO "LPMLV30_MODES_UPPER_LIM" DO
+	    IF NOT #ConfigurationOmac.disabledUnitModes[#iMode] THEN
+	        "LOmacApcFr_TimeSplitDINT"(timeValue:=#ModeCumulativeTime[#iMode],
+	                         Days=>#CounterCumulativeTime[0].TimeMode.Days,
+	                         Hours=>#CounterCumulativeTime[#iMode].TimeMode.Hours,
+	                         Minutes=>#CounterCumulativeTime[#iMode].TimeMode.Minutes,
+	                         Seconds=>#CounterCumulativeTime[#iMode].TimeMode.Seconds);
+	    END_IF;
+	END_FOR;
+	
+	//Cumulative counter of State time of each mode
+	FOR #iMode := 0 TO "LPMLV30_MODES_UPPER_LIM" DO
+	    IF NOT #ConfigurationOmac.disabledUnitModes[#iMode] THEN
+	        FOR #iState := 0 TO "LPMLV30_STATES_UPPER_LIM" DO
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X0 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X1 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X2 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X3 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X4 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X5 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X6 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X7 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X8 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X9 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X10 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X11 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X12 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X13 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X14 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X15 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X16 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	            IF NOT #ConfigurationOmac.disabledStatesInUnitModes[#iMode].%X17 THEN
+	                "LOmacApcFr_TimeSplitDINT"(timeValue := #StateCumulativeTime[#iMode, #iState],
+	                                 Days => #CounterCumulativeTime[0].TimeState[#iState].Days,
+	                                 Hours => #CounterCumulativeTime[#iMode].TimeState[#iState].Hours,
+	                                 Minutes => #CounterCumulativeTime[#iMode].TimeState[#iState].Minutes,
+	                                 Seconds => #CounterCumulativeTime[#iMode].TimeState[#iState].Seconds);
+	                
+	            END_IF;
+	        END_FOR;
+	    END_IF;
+	END_FOR;
+	
+	
+END_FUNCTION_BLOCK
+

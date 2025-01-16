@@ -1,0 +1,267 @@
+﻿FUNCTION "LAxisCtrlApcFr_Word2String_LaxisCtrl.Status" : String
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      wordStatus : Word;
+      language : String;
+   END_VAR
+
+   VAR_TEMP 
+      tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status : String;
+      tempString_WordStatus : String;
+      tempErrorHTA : Word;
+   END_VAR
+
+
+BEGIN
+	// FB LAxisCtrl status for Motion Control instructions : conversion word to string
+	// 
+	// ---------------------------------------------------------------
+	// english text
+	// ---------------------------------------------------------------
+	IF #language = 'EN' THEN
+	    CASE #wordStatus OF
+	        w#16#7000:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'No call OF FB';
+	        w#16#7001:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'First cycle OF FB after enabling';
+	        w#16#7002:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'FB enabled';
+	        w#16#8001:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid basic command selected (e.g. rising edge at 2 OR more basic motion command inputs)';
+	        w#16#8002:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid extended command selected (e.g. rising edge at torque limiting AND homing on fixed stop)';
+	        w#16#8003:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid superimposed command selected (e.g. rising edge at 2 OR more superimposed motion command inputs';
+	        // w#16#8200:
+	        //     #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during camIn command (invalid cam connected at cam input)';
+	        w#16#8201:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid jog mode selected';
+	        w#16#8202:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid extended homing mode selected';
+	        w#16#8203:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error during extended homing command - torque limiting NOT allowed during homing on fixed stop is active OR axis in clamping';
+	        w#16#8204:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid direction selected (jog forward AND jog backward)';
+	        w#16#8205:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid direction is set FOR relative positioning command';
+	        w#16#8206:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid direction is set FOR superimposed positioning command';
+	        w#16#8207:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Passive/Direct homing is NOT allowed during extended homing mode (homing on fixed stop process) is active';
+	        w#16#8208:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Extended homing mode (homing on fixed stop process) is NOT allowed with modulo axis';
+	        w#16#8209:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Configured torque limit value FOR extended homing mode (homing on fixed stop process) = 0';
+	        w#16#820A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Configured velocity (in technology object) FOR active homing = 0';
+	        w#16#820B:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Illegal specification of the technology object';
+	        w#16#820C:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Invalid target position configured for extended homing mode';
+	        w#16#820D:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error invalid mode for gearOutCamOut instruction';
+	        w#16#820E:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error invalid extended mode for synchronized motion simulation functionality';
+	        w#16#8600:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_POWER command';
+	        w#16#8601:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_RESET command';
+	        w#16#8602:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_HOME command';
+	        w#16#8603:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_TORQUELIMITING command';
+	        w#16#8604:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_HALT command';
+	        w#16#8605:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_MOVEJOG command (continuous jogging)';
+	        w#16#8606:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_MOVEVELOCITY command';
+	        w#16#8607:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_MOVERELATIVE command';
+	        w#16#8608:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_MOVEABSOLUTE command';
+	        w#16#8609:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_MOVESUPERIMPOSED command';
+	        w#16#860A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_GEARIN command';
+	        w#16#860B:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_PHASINGABSOLUTE command';
+	        w#16#860C:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_PHASINGRELATIVE command';
+	        w#16#860D:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_CAMIN command';
+	        w#16#860E:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_GEARINPOS command';
+	        w#16#860F:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_SYNCHRONIZEDMOTIONSIMULATION command';
+	        w#16#8610:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_OFFSETABSOLUTE command';
+	        w#16#8611:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_OFFSETRELATIVE command';
+	        w#16#8612:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_CAMOUT command';
+	        w#16#8613:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_GEAROUT command';
+	        w#16#8614:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_HALTSUPERIMPOSED command';
+	        w#16#8615:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error occurred during MC_GEARINVELOCITY command';
+	        w#16#8700:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined FB state';
+	        w#16#8701:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined reset state';
+	        w#16#8702:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined basic motion state';
+	        w#16#8703:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined torque limiting state';
+	        w#16#8704:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined incremental jog state';
+	        w#16#8705:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined incremental jog substate';
+	        w#16#8706:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined homing state';
+	        w#16#8707:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined homing substate';
+	        w#16#8708:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined superimposed motion state';
+	        w#16#8709:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined synchronized motion simulation state';
+	        w#16#870A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Error due TO an undefined Main selection state';
+	        ELSE  // Statement section ELSE
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Unspecified error';
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // french text
+	    // ---------------------------------------------------------------
+	ELSIF #language = 'FR' THEN
+	    CASE #wordStatus OF
+	        w#16#7000:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'FB non appele';
+	        w#16#7001:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Premier cycle du FB apres l activation';
+	        w#16#7002:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'FB active';
+	        w#16#8001:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Commande basique selectionnee invalide (ex: front montant sur plusieurs entrees de la commande motion basique';
+	        w#16#8002:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Commande etendue selectionnee invalide (ex: front montant sur la limite de couple ET sur le referencement sur butee fixe)';
+	        w#16#8003:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Commande superimposed selectionnee invalide (ex: front montant sur plusieurs entrees de la commande motion superimposed';
+	        w#16#8200:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande camIn (cam connectee sur l entre cam invalide)';
+	        w#16#8201:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Mode jog selectionnee invalide';
+	        w#16#8202:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Mode de referencement selectionnee invalide';
+	        w#16#8203:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur durant la commande de referencement etendue - limitation de couple NON autorisee durant le referencement sur butee est activee OU axe en blocage';
+	        w#16#8204:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Direction selectionee invalide (jog forward AND jog backward)';
+	        w#16#8205:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Direction invalide selectionne POUR la commande de positionnement relatif';
+	        w#16#8206:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Direction invalide selectionne POUR la commande de positionnement superimposed';
+	        w#16#8207:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Le referencement Passif/Direct homing n est pas autorise quand le mode referencement etendu (referencement sur butee fixe) est active';
+	        w#16#8208:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Le mode referencement etendu (referencement sur butee fixe) n est pas autorise avec un axe modulo';
+	        w#16#8209:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'La valeur de limite de couple configuree POUR le mode referencement etendu (referencement sur butee fixe) = 0';
+	        w#16#820A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'La vitesse configuree (dans l objet technologique) POUR le referencement actif = 0';
+	        w#16#820B:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Specification de l objet technologique non correcte';
+	        w#16#820C:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Position cible configuree invalide pour le mode de referencement etendu';
+	        w#16#820D:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur mode invalide pour l instruction gearOutCamOut';
+	        w#16#820E:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur mode etendu invalide pour la fonction synchronized motion simulation';
+	        w#16#8600:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_POWER';
+	        w#16#8601:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_RESET';
+	        w#16#8602:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_HOME';
+	        w#16#8603:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_TORQUELIMITING';
+	        w#16#8604:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_HALT';
+	        w#16#8605:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_MOVEJOG (jog continu)';
+	        w#16#8606:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande  MC_MOVEVELOCITY';
+	        w#16#8607:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_MOVERELATIVE';
+	        w#16#8608:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_MOVEABSOLUTE';
+	        w#16#8609:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_MOVESUPERIMPOSED';
+	        w#16#860A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_GEARIN';
+	        w#16#860B:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_PHASINGABSOLUTE';
+	        w#16#860C:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_PHASINGRELATIVE';
+	        w#16#860D:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_CAMIN';
+	        w#16#860E:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_GEARINPOS';
+	        w#16#860F:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_SYNCHRONIZEDMOTIONSIMULATION';
+	        w#16#8610:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_OFFSETABSOLUTE';
+	        w#16#8611:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_OFFSETRELATIVE';
+	        w#16#8612:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_CAMOUT';
+	        w#16#8613:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_GEAROUT';
+	        w#16#8614:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande MC_HALTSUPERIMPOSED';
+	        w#16#8615:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Une erreur s est produite lors de la commande  MC_GEARINVELOCITY';
+	        w#16#8700:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat du FB indefini';
+	        w#16#8701:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat du reset indefini';
+	        w#16#8702:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat du basic motion indefini';
+	        w#16#8703:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat de la limitation de indefini';
+	        w#16#8704:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat du jog inceremental indefini';
+	        w#16#8705:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un sous-etat (substate) du jog inceremental indefini';
+	        w#16#8706:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat de referencement indefini';
+	        w#16#8707:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un sous-etat (substate) de referencement indefini';
+	        w#16#8708:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat du mouvement superimposed indefini';
+	        w#16#8709:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat de simulation de mouvement synchronise indefini';
+	        w#16#870A:
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur due a un etat de selection principale indefini';
+	        ELSE  // Statement section ELSE
+	            #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Erreur non specifiee';
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // unknown language
+	    // ---------------------------------------------------------------    
+	ELSE
+	    #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status := 'Language unavailable';
+	END_IF;
+	
+	//ErrorID code in string
+	//#tempString_WordStatus := "LapcFr_Word2String"(#wordStatus);
+	#tempErrorHTA := HTA(IN := #wordStatus, N := 2, OUT => #tempString_WordStatus);
+	//ErrorID + Text in string
+	#"LAxisCtrlApcFr_Word2String_LaxisCtrl.Status" := CONCAT(IN1 := CONCAT(IN1 := #tempString_WordStatus, IN2 := ': '), IN2 := #tempLaxisCtrlApcFr_Word2String_LaxisCtrl_Status);
+	
+END_FUNCTION
+

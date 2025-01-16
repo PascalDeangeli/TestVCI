@@ -1,0 +1,66 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubAxisOutputActualValue" : Void
+TITLE = LAxisCtrl_UnpubAxisPosition
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.2
+//Support: tech.team.motioncontrol@siemens.com
+   VAR_INPUT 
+      axis : DB_ANY;   // Axis specification
+   END_VAR
+
+   VAR_OUTPUT 
+      actualPosition : LReal;
+      actualVelocity : LReal;
+      actualSpeed : LReal;
+      actualAcceleration : LReal;
+      actualFollowingError : LReal;
+      actualTorque : LReal;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefSpeedAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_SpeedAxis
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+
+BEGIN
+	// Read axis parameter
+	#tempRefSpeedAxis ?= #axis;
+	#tempRefPosAxis ?= #axis;
+	
+	IF (#tempRefSpeedAxis <> NULL)  THEN
+	    // Axis type is TO_SpeedAxis or TO_PositioningAxis or TO_SynchronousAxis
+	    IF (#tempRefPosAxis <> NULL) THEN
+	        // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	        #actualPosition := #tempRefPosAxis^.ActualPosition;
+	        #actualVelocity := #tempRefPosAxis^.ActualVelocity;
+	        #actualSpeed := #tempRefPosAxis^.ActualSpeed;
+	        #actualAcceleration := #tempRefPosAxis^.ActualAcceleration;
+	        #actualFollowingError := #tempRefPosAxis^.StatusPositioning.FollowingError;
+	        IF #tempRefPosAxis^.Actor.MotorType = 0 THEN
+	            #actualTorque := #tempRefPosAxis^.StatusTorqueData.ActualTorque;
+	        ELSE
+	            #actualTorque := #tempRefPosAxis^.StatusTorqueData.ActualForce;
+	        END_IF;
+	    ELSE
+	        // Axis type is TO_SpeedAxis
+	        #actualSpeed := #tempRefSpeedAxis^.ActualSpeed;
+	        #actualAcceleration := #tempRefSpeedAxis^.Acceleration;
+	        #actualTorque := #tempRefSpeedAxis^.StatusTorqueData.ActualTorque;
+	        #actualFollowingError := 0.0;
+	        #actualPosition := 0.0;
+	        #actualVelocity := 0.0;
+	    END_IF;
+	    
+	ELSE
+	    // Invalid TO specification
+	    #actualPosition := 0.0;
+	    #actualVelocity := 0.0;
+	    #actualSpeed := 0.0;
+	    #actualAcceleration := 0.0;
+	    #actualFollowingError := 0.0;
+	    #actualTorque := 0.0;
+	END_IF;
+END_FUNCTION
+

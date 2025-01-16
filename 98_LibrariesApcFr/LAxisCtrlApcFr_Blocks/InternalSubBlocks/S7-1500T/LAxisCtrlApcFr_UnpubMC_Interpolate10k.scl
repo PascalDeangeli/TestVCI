@@ -1,0 +1,17 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubMC_Interpolate10k" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      cam {InstructionName := 'TO_Cam_10k'; LibVersion := '8.0'} : TO_Cam_10k;
+   END_VAR
+
+   VAR_IN_OUT 
+      instMC {InstructionName := 'MC_INTERPOLATECAM'; LibVersion := '8.0'} : MC_INTERPOLATECAM;
+   END_VAR
+
+
+BEGIN
+	#instMC(Cam:=#cam);
+	
+END_FUNCTION
+

@@ -1,0 +1,399 @@
+﻿FUNCTION "LAxisCtrlApcFr_Word2String_TO.ErrorDetailNumber" : String
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      errorDetailNumber : UDInt;
+      language : String;
+   END_VAR
+
+   VAR_TEMP 
+      "tempLApcFr_Word2String_TO.ErrorDetailNumber" : String;
+      tempString : String;
+   END_VAR
+
+
+BEGIN
+	// Error detail number of TO ID : conversion udint to string
+	
+	// ---------------------------------------------------------------
+	// english text
+	// ---------------------------------------------------------------
+	IF #language = 'EN' THEN
+	    CASE #errorDetailNumber OF
+	        101:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Configuration error';
+	        102:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Drive configuration adaptation error';
+	        103:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Encoder configuration adaptation error';
+	        104:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'SW limit switch specification error';
+	        105:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Drive configuration error';
+	        106:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Drive connection configuration error';
+	        107:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Encoder configuration error';
+	        108:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Encoder connection configuration error';
+	        109:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Configuration error';
+	        110:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Configuration is adjusted internally';
+	        111:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'TO and drive configuration inconsistent';
+	        112:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'TO and drive configuration inconsistent';
+	        113:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Isochronous mode not possible';
+	        114:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Cross-PLC synchronous operation configuration error';
+	        201:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Internal error';
+	        202:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Internal configuration error';
+	        203:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Internal error';
+	        204:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Commissioning error';
+	        304:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Velocity limit is zero';
+	        305:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Limit value of the acceleration or deceleration is zero';
+	        306:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Jerk limit is zero';
+	        307:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Negative or positive numerical value range of the position reached';
+	        308:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Negative or positive numerical value range of the position exceeded';
+	        321:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Axis not homed';
+	        322:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Restart not executed';
+	        323:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'MC_Home could not be performed';
+	        341:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error in homing data';
+	        342:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Reference output cam/encoder zero mark not found';
+	        343:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Homing function not supported by device';
+	        401:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error accessing logical address';
+	        411:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Faulty encoder at the logical address';
+	        412:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Permitted actual value range exceeded';
+	        421:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Faulty drive at the logical address';
+	        431:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Faulty communication with device at logical address';
+	        501:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed velocity is limited';
+	        502:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed acceleration or deceleration is being limited';
+	        503:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed jerk is limited';
+	        504:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Speed setpoint monitoring active';
+	        511:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Dynamic limits are violated by the kinematics motion';
+	        521:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Following error';
+	        522:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Warning following error tolerance';
+	        531:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Positive or negative HW limit switch approached, or Illegal free travel direction of active hardware limit switch or HW limit switch polarity reversed, free travel notT possible or Both hardware limit switches active, retraction not possible';
+	        533:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Negative or positive SW limit switch approached';
+	        534:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Negative or positive SW limit switch is crossed';
+	        541:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Position monitoring error';
+	        542:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Clamping monitoring error: Axis leaving clamping tolerance window ';
+	        550:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Drive-autonomous motion is being executed';
+	        551:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Maximum velocity cannot be reached with drive/axis parameters';
+	        552:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Encoder adaptation error during ramp-up';
+	        561:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed velocity of the orientation mo-tion is limited';
+	        562:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed acceleration or deceleration of the orienta-tion motion is limited';
+	        563:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Programmed jerk of the orientation motion is limited';
+	        601:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Leading axis is not assigned or defective';
+	        603:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Leading axis is NOT in position-controlled mode';
+	        608:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error during synchronization';
+	        611:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'The cam specified in the MC_CamIn.Cam parameter has not been configured or is not available or is not interpolated';
+	        612:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Specified cam has not been interpolated';
+	        613:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Accuracy of leading value is limited';
+	        700:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Output cam limiting error';
+	        701:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'I/O output error';
+	        702:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Position value valid';
+	        703:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Cam track data faulty';
+	        704:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Output cam data faulty';
+	        750:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Measuring job NOT possible during homing of assigned axis';
+	        752:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Validity range of measuring job not recognized';
+	        753:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Only one measuring input can access an encoder at a time';
+	        754:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Measuring input configuration in external device is not correct';
+	        755:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Measuring job not possible';
+	        758:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'A measuring edge was not evaluated';
+	        801:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Kinematics axis not ready';
+	        802:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Cannot calculate the geometry element';
+	        803:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error in the calculation of the transformation';
+	        804:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Kinematics motion cannot be stopped at end';
+	        805:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Limitation of path dynamics by axis dynamics incorrect';
+	        806:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Zone violation of work or blocked zones';
+	        807:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Zone violation of signal zones';
+	        808:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Ambiguity due to multiple active work zones';
+	        809:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Path dynamic limit through dynamic of the orientation motion faulty';
+	        810:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Conveyor belt not assigned or faulty (OCS <number>)';
+	        811:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error when approaching the TCP to an object coordinate system (OCS <number>)';
+	        812:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Error in the treatment of singularities';
+	        820:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Upper or lower limit of joint traversing range joint <No.> overtraveled';
+	        900:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Invalid leading values';
+	        901:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Data transmission error';
+	        902:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Accuracy of leading value is limited';
+	        903:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Modulo settings of the leading axis changed in cyclic operation';
+	            
+	        ELSE  // Statement section ELSE
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Unspecified error';
+	            
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // french text
+	    // ---------------------------------------------------------------
+	ELSIF #language = 'FR' THEN
+	    CASE #errorDetailNumber OF
+	        101:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration';
+	        102:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur adaptation configuration de l entrainement';
+	        103:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur adaptation config. codeur';
+	        104:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur indication fins de course logiciels';
+	        105:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration de l entrainement';
+	        106:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration dans la connexion de l entrainement';
+	        107:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration codeur';
+	        108:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration dans la connexion du codeur';
+	        109:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration';
+	        110:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La configuration est adaptee en interne';
+	        111:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Incoherence entre la configuration de TO et la configuration de l entrainement';
+	        112:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Incoherence entre la configuration de TO et la config. du codeur';
+	        113:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Mode synchrone impossible';
+	        114:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration synchronisme inter-API';
+	        201:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur interne';
+	        202:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de configuration interne';
+	        203:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur interne';
+	        204:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de mise en service';
+	        304:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La valeur limite de la vitesse est nulle';
+	        305:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La valeur limite de l acceleration ou de deceleration est nulle';
+	        306:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La valeur limite pour l a-coup est nulle';
+	        307:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La plage de valeurs numeriques negatives ou positives possibles pour la position a ete atteinte';
+	        308:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Negative or positive numerical value range of the position exceeded';
+	        321:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Axe non reference';
+	        322:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Redemarrage non effectue';
+	        323:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'MC_Home n a pas pu etre execute';
+	        341:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Donnees de referencement incorrectes';
+	        342:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Came de reference/top zero du codeur introuvable';
+	        343:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La fonction Referencement n est pas prise en charge par l appareil';
+	        401:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors de l acces a l adresse logique';
+	        411:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Codeur a l adresse logique perturbe';
+	        412:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Plage de valeurs reelles autorisee depassee';
+	        421:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Entrainement a l adresse logique perturbe';
+	        431:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Communication perturbee avec l appareil a l adresse logique';
+	        501:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La vitesse programmee est limitee';
+	        502:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Limitation de l acceleration ou de la deceleration programmee';
+	        503:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L a-coup programme est limite';
+	        504:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Surveillance de la consigne de vitesse active';
+	        511:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Violation de la limite de la dynamique par le mouvement de la cinematique';
+	        521:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Ecart de trainage';
+	        522:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Avertissement tolerance ecart de trainage';
+	        531:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Le fin de course materiel positif ou negative a ete accoste, ou sens de degagement incorrect, fin de course materiel active';
+	        533:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Deplacement jusqu au fin de course logiciel positif ou negatif';
+	        534:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Le fin de course logiciel positif ou negatif a ete depasse';
+	        541:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de surveillance de position';
+	        542:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de surveillance du blocage : L axe quitte la fenetre de tolerance de blocage';
+	        550:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Un mouvement autonome de l entrainement est execute';
+	        551:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Vitesse maximale inaccessible avec les parametres d entrainement et d axe';
+	        552:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur adapt. codeur au demarrage';
+	        561:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La vitesse programmee du mouvement d orientation est limitee';
+	        562:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L acceleration ou deceleration programmee du mouvement d orientation est limitee';
+	        563:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L a-coup programme du mouvement d orientation est limite';
+	        601:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L axe pilote n est pas affecte ou il est defectueux';
+	        603:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L axe pilote ne se trouve pas en mode de regulation de position';
+	        608:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors de la synchronisation/desynchronisation';
+	        611:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'The cam specified in the MC_CamIn.Cam parameter has not been configured or is not available or is not interpolated';
+	        612:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Le profil de came indique n a pas ete interpole';
+	        613:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Accuracy of leading value is limited';
+	        700:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors du calcul de la position de commutation';
+	        701:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de sortie peripherique';
+	        702:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Valeur de position invalide';
+	        703:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Donnees de piste de came erronees';
+	        704:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Donnees de came erronees';
+	        750:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Tache de mesure impossible lors du referencement de l axe affecte';
+	        752:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Plage admissible de la tache de mesure non detectee';
+	        753:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'L acces simultane de plusieurs palpeurs de mesure a un codeur n est pas possible';
+	        754:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Configuration des entrees de mesure incorrecte dans un appareil externe';
+	        755:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Tache de mesure impossible';
+	        758:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Un front de mesure n a pas ete evalue';
+	        801:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Axe de la cinematique pas pret';
+	        802:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Calcul de l element geometrique impossible';
+	        803:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors du calcul de la transformation';
+	        804:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Impossible d arreter le mouvement de la cinematique a la fin';
+	        805:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La limitation de la dynamique de trajectoire par la dynamique d axe est incorrecte';
+	        806:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Violation des zones de travail ou de blocage';
+	        807:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Violation des zones de signalisation';
+	        808:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Incoherence due a la presence de plusieurs zones de travail actives';
+	        809:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'La limitation de la dynamique de trajectoire par la dynamique du mouvement d orientation est incorrecte';
+	        810:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Le convoyeur n est pas affecte ou defectueux (OCS <numero>)';
+	        811:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors de l accostage du TCP a un systeme de coordonnees d objet (OCS <numero>)';
+	        812:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur lors du traitement de points singuliers';
+	        820:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Limite inferieure ou superieure de la plage de deplacement de l articulation <numero> depassee';
+	        900:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Valeurs pilotes invalides';
+	        901:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur de transmission de donnees';
+	        902:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Precision de valeur pilote limitee';
+	        903:
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Parametres modulo de l axe pilote modifies en mode cyclique';
+	            
+	        ELSE  // Statement section ELSE
+	            #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Erreur non specifiee';
+	            
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // unknown language
+	    // ---------------------------------------------------------------    
+	ELSE
+	    #"tempLApcFr_Word2String_TO.ErrorDetailNumber" := 'Language unavailable';
+	END_IF;
+	
+	// Display text with number error
+	#tempString := UDINT_TO_STRING(#errorDetailNumber);
+	#tempString := RIGHT(IN := #tempString, L := LEN(#tempString)-1);
+	#"LAxisCtrlApcFr_Word2String_TO.ErrorDetailNumber" := CONCAT(IN1 := CONCAT(IN1 := #tempString, IN2 := ': '), IN2 := #"tempLApcFr_Word2String_TO.ErrorDetailNumber");
+	
+	
+	
+END_FUNCTION
+

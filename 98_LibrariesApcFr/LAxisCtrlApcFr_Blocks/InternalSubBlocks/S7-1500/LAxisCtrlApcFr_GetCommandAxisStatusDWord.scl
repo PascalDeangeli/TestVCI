@@ -1,0 +1,79 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_GetCommandAxisStatusDWord"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      simulationOnoff : Bool;
+      stateSafetyActive { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      stateS120InfeedInOperation { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      enableAxis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Set axis enable; FALSE: Remove axis enable
+      resetAxis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Acknowledgement of technology alarms or restart of the axis (depending on configuration)
+      openBrake { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      jogForward { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Move an axis in jog mode (forward); Falling edge: Stop jogging
+      jogBackward { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Move an axis in jog mode (backward); Falling edge: Stop jogging
+      moveVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Move an axis at constant velocity/speed
+      stop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Brake an axis until it comes to a standstill
+      gearInVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Brake an axis until it comes to a standstill (with fastStop dynamics)
+      torqueLimiting { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Enable force/torque limiting
+      homing { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Home axis
+      posRelative { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Move an axis relative to its position when execution of the job began
+      posAbsolute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Move an axis to an absolute position
+      posSuperimposed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge: Start a superimposed positioning
+      gearInRelatif { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      gearInAbsolute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      camIn { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      camInStandStill { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      phasing { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      gearOutCamOut { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      actDeactLimitSwitches { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      changeModulo { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      homingToFixedStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      homingOnSensor { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      resetMaxValues { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // reset max torque and max followingerror
+      eStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      StartEndLessMode { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      camInChangeOnTheFly : Bool;
+      offset : Bool;
+      haltSuperimposed : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      axisCommandStatusDWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DWord;
+   END_VAR
+
+
+BEGIN
+	// transfer all axis command in dword
+	#axisCommandStatusDWord.%X0 := #simulationOnoff;
+	#axisCommandStatusDWord.%X1 := #stateSafetyActive;
+	#axisCommandStatusDWord.%X2 := #stateS120InfeedInOperation;
+	#axisCommandStatusDWord.%X3 := #enableAxis;
+	#axisCommandStatusDWord.%X4 := #resetAxis;
+	#axisCommandStatusDWord.%X5 := #openBrake;
+	#axisCommandStatusDWord.%X6 := #jogForward;
+	#axisCommandStatusDWord.%X7 := #jogBackward;
+	#axisCommandStatusDWord.%X8 := #moveVelocity;
+	#axisCommandStatusDWord.%X9 := #stop;
+	#axisCommandStatusDWord.%X10 := #gearInVelocity;
+	#axisCommandStatusDWord.%X11 := #torqueLimiting;
+	#axisCommandStatusDWord.%X12 := #homing;
+	#axisCommandStatusDWord.%X13 := #posRelative;
+	#axisCommandStatusDWord.%X14 := #posAbsolute;
+	#axisCommandStatusDWord.%X15 := #posSuperimposed;
+	#axisCommandStatusDWord.%X16 := #gearInRelatif;
+	#axisCommandStatusDWord.%X17 := #gearInAbsolute;
+	#axisCommandStatusDWord.%X18 := #camIn;
+	#axisCommandStatusDWord.%X19 := #camInStandStill;
+	#axisCommandStatusDWord.%X20 := #phasing;
+	#axisCommandStatusDWord.%X21 := #gearOutCamOut;
+	#axisCommandStatusDWord.%X22 := #actDeactLimitSwitches;
+	#axisCommandStatusDWord.%X23 := #changeModulo;
+	#axisCommandStatusDWord.%X24 := #homingToFixedStop;
+	#axisCommandStatusDWord.%X25 := #homingOnSensor;
+	#axisCommandStatusDWord.%X26 := #resetMaxValues;
+	#axisCommandStatusDWord.%X27 := #eStop;
+	#axisCommandStatusDWord.%X28 := #StartEndLessMode;
+	#axisCommandStatusDWord.%X29 := #camInChangeOnTheFly;
+	#axisCommandStatusDWord.%X30 := #offset;
+	#axisCommandStatusDWord.%X31 := #haltSuperimposed;
+END_FUNCTION_BLOCK
+

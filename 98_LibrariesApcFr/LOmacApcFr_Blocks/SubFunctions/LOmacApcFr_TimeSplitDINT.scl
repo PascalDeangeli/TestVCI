@@ -1,0 +1,56 @@
+﻿FUNCTION "LOmacApcFr_TimeSplitDINT" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      timeValue : DInt;
+   END_VAR
+
+   VAR_OUTPUT 
+      Days : DInt;
+      Hours : DInt;
+      Minutes : DInt;
+      Seconds : DInt;
+   END_VAR
+
+   VAR_TEMP 
+      tempDays : DInt;
+      tempGapHours : DInt;
+      tempHours : DInt;
+      tempGapMinute : DInt;
+      tempMinute : DInt;
+      tempGapSecond : DInt;
+      tempSecond : DInt;
+   END_VAR
+
+
+BEGIN
+	//----------------------------------------------------------------------------
+	// <division / place / author>
+	//----------------------------------------------------------------------------
+	// Functionality description: This function is called to split a time value in
+	//                            values for hours, minutes and seconds. DINT
+	//----------------------------------------------------------------------------
+	//Separate Days from time  
+	#tempDays := TRUNC(#timeValue / (3600 * 24));
+	//time without days
+	#tempGapHours := #timeValue - (#tempDays * (3600 * 24));
+	//Separate Hours from time without days
+	#tempHours := TRUNC(#tempGapHours / 3600);
+	//time without hours
+	#tempGapMinute := #tempGapHours - (#tempHours * 3600);
+	//Separate minute from time without days and hours
+	#tempMinute := TRUNC(#tempGapMinute / 60);
+	//time without minute
+	#tempGapSecond := #tempGapMinute - (#tempMinute * 60);
+	//Separate second from time without days, hours and minute
+	#tempSecond := #tempGapSecond;
+	
+	//Output
+	#Days := #tempDays;
+	#Hours := #tempHours;
+	#Minutes := #tempMinute;
+	//#Seconds := (#timeValue MOD 60);
+	#Seconds := #tempSecond;
+	
+END_FUNCTION
+

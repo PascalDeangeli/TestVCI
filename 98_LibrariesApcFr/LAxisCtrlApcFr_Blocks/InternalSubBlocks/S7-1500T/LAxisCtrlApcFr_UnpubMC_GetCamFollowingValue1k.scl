@@ -1,0 +1,19 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubMC_GetCamFollowingValue1k" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      cam {InstructionName := 'TO_Cam'; LibVersion := '8.0'} : TO_Cam;
+   END_VAR
+
+   VAR_IN_OUT 
+      instMC {InstructionName := 'MC_GETCAMFOLLOWINGVALUE'; LibVersion := '8.0'} : MC_GETCAMFOLLOWINGVALUE;
+   END_VAR
+
+
+BEGIN
+	// Call of MC_Instruction
+	#instMC(Cam:=#cam);
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,44 @@
+﻿FUNCTION_BLOCK "LMAxisCtrlApcFr_Stop"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ExecuteStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      Deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      Jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real := -1.0;
+      AbortDeceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+   END_VAR
+
+   VAR_IN_OUT 
+      AxisFB_Interface : "LMAxisCtrlApcFr_TypeInterface";
+   END_VAR
+
+   VAR 
+      statEdgeUp { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: First call of FB
+      statEdgeDown { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStateOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of enable for edge detection
+   END_VAR
+
+
+BEGIN
+	//=====================================================================================================
+	#statEdgeUp := #ExecuteStop AND NOT #statStateOld;
+	#statEdgeDown := NOT #ExecuteStop AND #statStateOld;
+	#statStateOld := #ExecuteStop;
+	
+	REGION EdgeUp
+	    IF #statEdgeUp THEN
+	        #AxisFB_Interface.In.stop := TRUE;
+	        #AxisFB_Interface.In.dataAxisConfig.stop.deceleration := #Deceleration;
+	        #AxisFB_Interface.In.dataAxisConfig.stop.jerk := #Jerk;
+	        #AxisFB_Interface.In.dataAxisConfig.stop.abortAcceleration := #AbortDeceleration;
+	    END_IF;
+	END_REGION
+	
+	REGION EdgeDown
+	    IF #statEdgeDown THEN
+	        #AxisFB_Interface.In.stop := FALSE;
+	    END_IF;
+	END_REGION
+	//=====================================================================================================
+END_FUNCTION_BLOCK
+

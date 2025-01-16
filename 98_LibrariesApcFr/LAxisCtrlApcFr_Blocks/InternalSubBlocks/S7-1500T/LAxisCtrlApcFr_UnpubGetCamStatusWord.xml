@@ -1,0 +1,799 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Cam" Datatype="DB_ANY">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="camUsed" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="error" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="restartActive" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="onlineStartValuesChanged" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="camDataChange" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="interpolated" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="interpolation" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="statCam" Datatype="DB_ANY">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="statCamType" Datatype="Int">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="en-US">Type of cam</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">Type of cam</MultiLanguageText>
+      </Comment>
+    </Member>
+  </Section>
+  <Section Name="Temp" />
+  <Section Name="Constant">
+    <Member Name="INVALID_CAM" Datatype="Int">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Invalid cam</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">Invalid cam</MultiLanguageText>
+      </Comment>
+      <StartValue>-3</StartValue>
+    </Member>
+    <Member Name="CAM_1K" Datatype="Int">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Cam type: Cam</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">Cam type: Cam</MultiLanguageText>
+      </Comment>
+      <StartValue>1</StartValue>
+    </Member>
+    <Member Name="CAM_10K" Datatype="Int">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Cam type: Cam_10k</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">Cam type: Cam_10k</MultiLanguageText>
+      </Comment>
+      <StartValue>2</StartValue>
+    </Member>
+    <Member Name="ERROR_INVALID_TECHNOLOGY_OBJECT" Datatype="Word">
+      <Comment>
+        <MultiLanguageText Lang="en-US">See corresponding parameter of MC_ instruction in TIA Portal help (information system)</MultiLanguageText>
+        <MultiLanguageText Lang="fr-FR">See corresponding parameter of MC_ instruction in TIA Portal help (information system)</MultiLanguageText>
+      </Comment>
+      <StartValue>16#8002</StartValue>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <IsIECCheckEnabled>true</IsIECCheckEnabled>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>LAxisCtrlApcFr_UnpubGetCamStatusWord</Name>
+      <Namespace />
+      <Number>19516</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>true</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="5" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="6" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22">==========================================================================================</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <LineComment UId="24">
+    <Text UId="25"> SIEMENS AG</Text>
+  </LineComment>
+  <NewLine UId="26" />
+  <LineComment UId="27">
+    <Text UId="28"> (c)Copyright 2017 All Rights Reserved</Text>
+  </LineComment>
+  <NewLine UId="29" />
+  <LineComment UId="30">
+    <Text UId="31">------------------------------------------------------------------------------------------</Text>
+  </LineComment>
+  <NewLine UId="32" />
+  <LineComment UId="33">
+    <Text UId="34"> Library: LAxisCtrl</Text>
+  </LineComment>
+  <NewLine UId="35" />
+  <LineComment UId="36">
+    <Text UId="37"> Tested with: S7-1515T-2 PN</Text>
+  </LineComment>
+  <NewLine UId="38" />
+  <LineComment UId="39">
+    <Text UId="40"> Engineering: TIA Portal V16</Text>
+  </LineComment>
+  <NewLine UId="41" />
+  <LineComment UId="42">
+    <Text UId="43"> Restrictions: ---</Text>
+  </LineComment>
+  <NewLine UId="44" />
+  <LineComment UId="45">
+    <Text UId="46"> Requirements: S7-1500/S7-1500T FW 2.5</Text>
+  </LineComment>
+  <NewLine UId="47" />
+  <LineComment UId="48">
+    <Text UId="49"> Functionality: Get information from status word</Text>
+  </LineComment>
+  <NewLine UId="50" />
+  <LineComment UId="51">
+    <Text UId="52">------------------------------------------------------------------------------------------</Text>
+  </LineComment>
+  <NewLine UId="53" />
+  <LineComment UId="54">
+    <Text UId="55"> Change log table:</Text>
+  </LineComment>
+  <NewLine UId="56" />
+  <LineComment UId="57">
+    <Text UId="58"> Version    Date          Expert in charge    Changes applied</Text>
+  </LineComment>
+  <NewLine UId="59" />
+  <LineComment UId="60">
+    <Text UId="61"> 01.00.01   23.06.2020    APC                 First released version</Text>
+  </LineComment>
+  <NewLine UId="62" />
+  <LineComment UId="63">
+    <Text UId="64">===========================================================================================</Text>
+  </LineComment>
+  <NewLine Num="2" UId="65" />
+  <Token Text="CASE" UId="66" />
+  <Blank UId="67" />
+  <Access Scope="Call" UId="68">
+    <Instruction Name="TypeOfDB" UId="69">
+      <Token Text="(" UId="70" />
+      <NamelessParameter UId="71">
+        <Access Scope="LocalVariable" UId="72">
+          <Symbol UId="73">
+            <Component Name="Cam" UId="74" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="76" />
+    </Instruction>
+  </Access>
+  <Blank UId="77" />
+  <Token Text="OF" UId="78" />
+  <NewLine UId="79" />
+  <Blank Num="4" UId="80" />
+  <Access Scope="SystemType" UId="81">
+    <DataType UId="82">TO_Cam</DataType>
+  </Access>
+  <Token Text=":" UId="83" />
+  <NewLine UId="84" />
+  <Blank Num="8" UId="85" />
+  <Access Scope="LocalVariable" UId="86">
+    <Symbol UId="87">
+      <Component Name="statCam" UId="88" />
+    </Symbol>
+  </Access>
+  <Blank UId="89" />
+  <Token Text=":=" UId="90" />
+  <Blank UId="91" />
+  <Access Scope="LocalVariable" UId="92">
+    <Symbol UId="93">
+      <Component Name="Cam" UId="94" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="95" />
+  <NewLine UId="96" />
+  <Blank Num="8" UId="97" />
+  <Access Scope="LocalVariable" UId="98">
+    <Symbol UId="99">
+      <Component Name="statCamType" UId="100" />
+    </Symbol>
+  </Access>
+  <Blank UId="101" />
+  <Token Text=":=" UId="102" />
+  <Blank UId="103" />
+  <Access Scope="LocalConstant" UId="104">
+    <Constant Name="CAM_1K" UId="105" />
+  </Access>
+  <Token Text=";" UId="108" />
+  <NewLine UId="109" />
+  <Blank Num="8" UId="110" />
+  <NewLine UId="111" />
+  <Blank Num="4" UId="112" />
+  <Access Scope="SystemType" UId="113">
+    <DataType UId="114">TO_Cam_10k</DataType>
+  </Access>
+  <Token Text=":" UId="115" />
+  <NewLine UId="116" />
+  <Blank Num="8" UId="117" />
+  <Access Scope="LocalVariable" UId="118">
+    <Symbol UId="119">
+      <Component Name="statCam" UId="120" />
+    </Symbol>
+  </Access>
+  <Blank UId="121" />
+  <Token Text=":=" UId="122" />
+  <Blank UId="123" />
+  <Access Scope="LocalVariable" UId="124">
+    <Symbol UId="125">
+      <Component Name="Cam" UId="126" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="127" />
+  <NewLine UId="128" />
+  <Blank Num="8" UId="129" />
+  <Access Scope="LocalVariable" UId="130">
+    <Symbol UId="131">
+      <Component Name="statCamType" UId="132" />
+    </Symbol>
+  </Access>
+  <Blank UId="133" />
+  <Token Text=":=" UId="134" />
+  <Blank UId="135" />
+  <Access Scope="LocalConstant" UId="136">
+    <Constant Name="CAM_10K" UId="137" />
+  </Access>
+  <Token Text=";" UId="140" />
+  <NewLine UId="141" />
+  <Blank Num="8" UId="142" />
+  <NewLine UId="143" />
+  <Blank Num="4" UId="144" />
+  <Token Text="ELSE" UId="145" />
+  <NewLine UId="146" />
+  <Blank Num="8" UId="147" />
+  <Access Scope="LocalVariable" UId="148">
+    <Symbol UId="149">
+      <Component Name="statCam" UId="150" />
+    </Symbol>
+  </Access>
+  <Blank UId="151" />
+  <Token Text=":=" UId="152" />
+  <Blank UId="153" />
+  <Access Scope="LiteralConstant" UId="154">
+    <Constant UId="155">
+      <ConstantValue UId="157">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="158" />
+  <NewLine UId="159" />
+  <Blank Num="8" UId="160" />
+  <Access Scope="LocalVariable" UId="161">
+    <Symbol UId="162">
+      <Component Name="statCamType" UId="163" />
+    </Symbol>
+  </Access>
+  <Blank UId="164" />
+  <Token Text=":=" UId="165" />
+  <Blank UId="166" />
+  <Access Scope="LocalConstant" UId="167">
+    <Constant Name="INVALID_CAM" UId="168" />
+  </Access>
+  <Token Text=";" UId="171" />
+  <NewLine UId="172" />
+  <Token Text="END_CASE" UId="173" />
+  <Token Text=";" UId="174" />
+  <NewLine Num="3" UId="175" />
+  <Token Text="CASE" UId="176" />
+  <Blank UId="177" />
+  <Access Scope="LocalVariable" UId="178">
+    <Symbol UId="179">
+      <Component Name="statCamType" UId="180" />
+    </Symbol>
+  </Access>
+  <Blank UId="181" />
+  <Token Text="OF" UId="182" />
+  <NewLine UId="183" />
+  <Blank Num="4" UId="184" />
+  <Access Scope="LocalConstant" UId="185">
+    <Constant Name="CAM_1K" UId="186" />
+  </Access>
+  <Token Text=":" UId="189" />
+  <NewLine UId="190" />
+  <Blank Num="8" UId="191" />
+  <Access Scope="Call" UId="192">
+    <CallInfo UId="193" BlockType="FC">
+      <Instance Scope="GlobalVariable" UId="195">
+        <Component Name="LAxisCtrlApcFr_UnpubMC_GetCamStatusWord1k" UId="194" />
+      </Instance>
+      <Token Text="(" UId="196" />
+      <Parameter Name="cam" UId="197">
+        <Token Text=":=" UId="198" />
+        <Access Scope="LocalVariable" UId="199">
+          <Symbol UId="200">
+            <Component Name="statCam" UId="201" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="202" />
+      <NewLine UId="203" />
+      <Blank Num="52" UId="204" />
+      <Parameter Name="camUsed" UId="205">
+        <Token Text="=&gt;" UId="206" />
+        <Access Scope="LocalVariable" UId="207">
+          <Symbol UId="208">
+            <Component Name="camUsed" UId="209" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="210" />
+      <NewLine UId="211" />
+      <Blank Num="52" UId="212" />
+      <Parameter Name="error" UId="213">
+        <Token Text="=&gt;" UId="214" />
+        <Access Scope="LocalVariable" UId="215">
+          <Symbol UId="216">
+            <Component Name="error" UId="217" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="218" />
+      <NewLine UId="219" />
+      <Blank Num="52" UId="220" />
+      <Parameter Name="restartActive" UId="221">
+        <Token Text="=&gt;" UId="222" />
+        <Access Scope="LocalVariable" UId="223">
+          <Symbol UId="224">
+            <Component Name="restartActive" UId="225" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="226" />
+      <NewLine UId="227" />
+      <Blank Num="52" UId="228" />
+      <Parameter Name="onlineStartValuesChanged" UId="229">
+        <Token Text="=&gt;" UId="230" />
+        <Access Scope="LocalVariable" UId="231">
+          <Symbol UId="232">
+            <Component Name="onlineStartValuesChanged" UId="233" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="234" />
+      <NewLine UId="235" />
+      <Blank Num="52" UId="236" />
+      <Parameter Name="camDataChange" UId="237">
+        <Token Text="=&gt;" UId="238" />
+        <Access Scope="LocalVariable" UId="239">
+          <Symbol UId="240">
+            <Component Name="camDataChange" UId="241" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="242" />
+      <NewLine UId="243" />
+      <Blank Num="52" UId="244" />
+      <Parameter Name="interpolated" UId="245">
+        <Token Text="=&gt;" UId="246" />
+        <Access Scope="LocalVariable" UId="247">
+          <Symbol UId="248">
+            <Component Name="interpolated" UId="249" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="250" />
+      <NewLine UId="251" />
+      <Blank Num="52" UId="252" />
+      <Parameter Name="interpolation" UId="253">
+        <Token Text="=&gt;" UId="254" />
+        <Access Scope="LocalVariable" UId="255">
+          <Symbol UId="256">
+            <Component Name="interpolation" UId="257" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="258" />
+    </CallInfo>
+  </Access>
+  <Token Text=";" UId="259" />
+  <NewLine UId="260" />
+  <Blank Num="8" UId="261" />
+  <NewLine UId="262" />
+  <Blank Num="4" UId="263" />
+  <Access Scope="LocalConstant" UId="264">
+    <Constant Name="CAM_10K" UId="265" />
+  </Access>
+  <Token Text=":" UId="268" />
+  <NewLine UId="269" />
+  <Blank Num="8" UId="270" />
+  <Access Scope="Call" UId="271">
+    <CallInfo UId="272" BlockType="FC">
+      <Instance Scope="GlobalVariable" UId="274">
+        <Component Name="LAxisCtrlApcFr_UnpubMC_GetCamStatusWord10k" UId="273" />
+      </Instance>
+      <Token Text="(" UId="275" />
+      <Parameter Name="cam" UId="276">
+        <Blank UId="277" />
+        <Token Text=":=" UId="278" />
+        <Blank UId="279" />
+        <Access Scope="LocalVariable" UId="280">
+          <Symbol UId="281">
+            <Component Name="statCam" UId="282" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="283" />
+      <NewLine UId="284" />
+      <Blank Num="52" UId="285" />
+      <Parameter Name="camUsed" UId="286">
+        <Blank UId="287" />
+        <Token Text="=&gt;" UId="288" />
+        <Blank UId="289" />
+        <Access Scope="LocalVariable" UId="290">
+          <Symbol UId="291">
+            <Component Name="camUsed" UId="292" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="293" />
+      <NewLine UId="294" />
+      <Blank Num="52" UId="295" />
+      <Parameter Name="error" UId="296">
+        <Blank UId="297" />
+        <Token Text="=&gt;" UId="298" />
+        <Blank UId="299" />
+        <Access Scope="LocalVariable" UId="300">
+          <Symbol UId="301">
+            <Component Name="error" UId="302" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="303" />
+      <NewLine UId="304" />
+      <Blank Num="52" UId="305" />
+      <Parameter Name="restartActive" UId="306">
+        <Blank UId="307" />
+        <Token Text="=&gt;" UId="308" />
+        <Blank UId="309" />
+        <Access Scope="LocalVariable" UId="310">
+          <Symbol UId="311">
+            <Component Name="restartActive" UId="312" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="313" />
+      <NewLine UId="314" />
+      <Blank Num="52" UId="315" />
+      <Parameter Name="onlineStartValuesChanged" UId="316">
+        <Blank UId="317" />
+        <Token Text="=&gt;" UId="318" />
+        <Blank UId="319" />
+        <Access Scope="LocalVariable" UId="320">
+          <Symbol UId="321">
+            <Component Name="onlineStartValuesChanged" UId="322" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="323" />
+      <NewLine UId="324" />
+      <Blank Num="52" UId="325" />
+      <Parameter Name="camDataChange" UId="326">
+        <Blank UId="327" />
+        <Token Text="=&gt;" UId="328" />
+        <Blank UId="329" />
+        <Access Scope="LocalVariable" UId="330">
+          <Symbol UId="331">
+            <Component Name="camDataChange" UId="332" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="333" />
+      <NewLine UId="334" />
+      <Blank Num="52" UId="335" />
+      <Parameter Name="interpolated" UId="336">
+        <Blank UId="337" />
+        <Token Text="=&gt;" UId="338" />
+        <Blank UId="339" />
+        <Access Scope="LocalVariable" UId="340">
+          <Symbol UId="341">
+            <Component Name="interpolated" UId="342" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="343" />
+      <NewLine UId="344" />
+      <Blank Num="52" UId="345" />
+      <Parameter Name="interpolation" UId="346">
+        <Blank UId="347" />
+        <Token Text="=&gt;" UId="348" />
+        <Blank UId="349" />
+        <Access Scope="LocalVariable" UId="350">
+          <Symbol UId="351">
+            <Component Name="interpolation" UId="352" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="353" />
+    </CallInfo>
+  </Access>
+  <Token Text=";" UId="354" />
+  <NewLine UId="355" />
+  <Blank Num="3" UId="356" />
+  <Access Scope="LocalConstant" UId="357">
+    <Constant Name="INVALID_CAM" UId="358" />
+  </Access>
+  <Token Text=":" UId="361" />
+  <NewLine UId="362" />
+  <Blank Num="7" UId="363" />
+  <Access Scope="LocalVariable" UId="364">
+    <Symbol UId="365">
+      <Component Name="camUsed" UId="366" />
+    </Symbol>
+  </Access>
+  <Blank UId="367" />
+  <Token Text=":=" UId="368" />
+  <Blank UId="369" />
+  <Access Scope="LiteralConstant" UId="370">
+    <Constant UId="371">
+      <ConstantValue UId="373">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="374" />
+  <NewLine UId="375" />
+  <Blank Num="7" UId="376" />
+  <Access Scope="LocalVariable" UId="377">
+    <Symbol UId="378">
+      <Component Name="error" UId="379" />
+    </Symbol>
+  </Access>
+  <Blank UId="380" />
+  <Token Text=":=" UId="381" />
+  <Blank UId="382" />
+  <Access Scope="LiteralConstant" UId="383">
+    <Constant UId="384">
+      <ConstantValue UId="386">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="387" />
+  <NewLine UId="388" />
+  <Blank Num="7" UId="389" />
+  <Access Scope="LocalVariable" UId="390">
+    <Symbol UId="391">
+      <Component Name="restartActive" UId="392" />
+    </Symbol>
+  </Access>
+  <Blank UId="393" />
+  <Token Text=":=" UId="394" />
+  <Blank UId="395" />
+  <Access Scope="LiteralConstant" UId="396">
+    <Constant UId="397">
+      <ConstantValue UId="399">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="400" />
+  <NewLine UId="401" />
+  <Blank Num="7" UId="402" />
+  <Access Scope="LocalVariable" UId="403">
+    <Symbol UId="404">
+      <Component Name="onlineStartValuesChanged" UId="405" />
+    </Symbol>
+  </Access>
+  <Blank UId="406" />
+  <Token Text=":=" UId="407" />
+  <Blank UId="408" />
+  <Access Scope="LiteralConstant" UId="409">
+    <Constant UId="410">
+      <ConstantValue UId="412">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="413" />
+  <NewLine UId="414" />
+  <Blank Num="7" UId="415" />
+  <Access Scope="LocalVariable" UId="416">
+    <Symbol UId="417">
+      <Component Name="camDataChange" UId="418" />
+    </Symbol>
+  </Access>
+  <Blank UId="419" />
+  <Token Text=":=" UId="420" />
+  <Blank UId="421" />
+  <Access Scope="LiteralConstant" UId="422">
+    <Constant UId="423">
+      <ConstantValue UId="425">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="426" />
+  <NewLine UId="427" />
+  <Blank Num="7" UId="428" />
+  <Access Scope="LocalVariable" UId="429">
+    <Symbol UId="430">
+      <Component Name="interpolated" UId="431" />
+    </Symbol>
+  </Access>
+  <Blank UId="432" />
+  <Token Text=":=" UId="433" />
+  <Blank UId="434" />
+  <Access Scope="LiteralConstant" UId="435">
+    <Constant UId="436">
+      <ConstantValue UId="438">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="439" />
+  <NewLine UId="440" />
+  <Blank Num="7" UId="441" />
+  <Access Scope="LocalVariable" UId="442">
+    <Symbol UId="443">
+      <Component Name="interpolation" UId="444" />
+    </Symbol>
+  </Access>
+  <Blank UId="445" />
+  <Token Text=":=" UId="446" />
+  <Blank UId="447" />
+  <Access Scope="LiteralConstant" UId="448">
+    <Constant UId="449">
+      <ConstantValue UId="451">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="452" />
+  <NewLine UId="453" />
+  <Token Text="END_CASE" UId="454" />
+  <Token Text=";" UId="455" />
+  <NewLine UId="456" />
+  <Blank Num="4" UId="457" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="7" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="11" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="12" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="13" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="14" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="15" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

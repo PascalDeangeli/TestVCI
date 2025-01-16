@@ -1,0 +1,643 @@
+﻿FUNCTION "LAxisCtrlApcFr_Word2String_ErrorID" : String
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      wordErrorID : Word;
+      language : String;
+   END_VAR
+
+   VAR_TEMP 
+      tempLapcFr_Word2String_ErrorID : String;
+      tempString_WordErrorID : String;
+      tempErrorHTA : Word;
+   END_VAR
+
+
+BEGIN
+	// Error ID for Motion Control instructions : conversion word to string
+	
+	// ---------------------------------------------------------------
+	// english text
+	// ---------------------------------------------------------------
+	IF #language = 'EN' THEN
+	    CASE #wordErrorID OF
+	        w#16#0000:
+	            #tempLapcFr_Word2String_ErrorID := 'No errorID';
+	        w#16#8001:
+	            #tempLapcFr_Word2String_ErrorID := 'A technology alarm (technology object error) occurred while processing the Motion Control instruction';
+	        w#16#8002:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification OF the technology object';
+	        w#16#8003:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal velocity specification';
+	        w#16#8004:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal acceleration specification';
+	        w#16#8005:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal deceleration specification';
+	        w#16#8006:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal jerk specification';
+	        w#16#8007:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal direction specification or both the "JogForward" and "JogBackward" parameters are set to TRUE at the same time';
+	        w#16#8008:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid distance specification or illegal specification of the relative target coordinate';
+	        w#16#8009:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid position specification or illegal specification of the absolute target coordinate';
+	        w#16#800A:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal operating mode or illegal mode specification';
+	        w#16#800B:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal stop mode specifications';
+	        w#16#800C:
+	            #tempLapcFr_Word2String_ErrorID := 'Only one instance of the instruction per technology object is allowed';
+	        w#16#800D:
+	            #tempLapcFr_Word2String_ErrorID := 'The job is not permitted in the current state. "Restart" is executed';
+	        w#16#800E:
+	            #tempLapcFr_Word2String_ErrorID := 'If the technology object is enabled, a "Restart" is not possible';
+	        w#16#800F:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because the technology object is locked';
+	        w#16#8010:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid homing mode for incremental encoder';
+	        w#16#8011:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid homing mode for absolute encoder';
+	        w#16#8012:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because the axis or kinematics control panel is active';
+	        w#16#8013:
+	            #tempLapcFr_Word2String_ErrorID := 'The online connection between the CPU and the TIA Portal is down';
+	        w#16#8014:
+	            #tempLapcFr_Word2String_ErrorID := 'No internal job memory available';
+	        w#16#8015:
+	            #tempLapcFr_Word2String_ErrorID := 'Error acknowledgment with "MC_Reset" is not possible. Error in the configuration of the technology object';
+	        w#16#8016:
+	            #tempLapcFr_Word2String_ErrorID := 'The actual values are not valid';
+	        w#16#8017:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for gear ratio numerator';
+	        w#16#8018:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for gear ratio denominator';
+	        w#16#8019:
+	            #tempLapcFr_Word2String_ErrorID := 'Job cannot be executed. The specified following axis is the original leading value for the synchronous operation chain';
+	        w#16#8021:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for shift of the leading value range';
+	        w#16#8022:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for shift OF the following value range';
+	        w#16#8023:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for scaling of the leading value range';
+	        w#16#8024:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for scaling OF the following value range';
+	        w#16#8026:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for leading value distance';
+	        w#16#8027:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for use of cam';
+	        w#16#8034:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for synchronous position of the leading axis';
+	        w#16#8035:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for synchronous position of the following axis';
+	        w#16#8036:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for type of synchronization';
+	        w#16#8037:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for stop position of the following axis';
+	        w#16#8040:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for start position of output cam';
+	        w#16#8041:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for end position of distance output cam';
+	        w#16#8042:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for switch-on duration of time-based output cam';
+	        w#16#8043:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for force/torque limiting';
+	        w#16#8044:
+	            #tempLapcFr_Word2String_ErrorID := 'The axis is not configured for torque reduction';
+	        w#16#8045:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a job for traveling to fixed stop is active';
+	        w#16#8046:
+	            #tempLapcFr_Word2String_ErrorID := 'The "MC_TorqueLimiting" job cannot be deactivated in the "InClamping" state';
+	        w#16#8047:
+	            #tempLapcFr_Word2String_ErrorID := 'The motion results in a fixed stop';
+	        w#16#804A:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for additive torque setpoint';
+	        w#16#804B:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for torque high limit';
+	        w#16#804C:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for torque low limit';
+	        w#16#804D:
+	            #tempLapcFr_Word2String_ErrorID := 'The value of the high limit of the torque is less than or equal to the value of the low limit of the torque';
+	        w#16#804E:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a "MC_TorqueLimiting" or "MC_TorqueRange" job is active';
+	        w#16#804F:
+	            #tempLapcFr_Word2String_ErrorID := 'The axis is not configured for additional torque values';
+	        w#16#8050:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal encoder number';
+	        w#16#8051:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal number of the reference encoder';
+	        w#16#8055:
+	            #tempLapcFr_Word2String_ErrorID := 'Bit masking not permitted at "MC_SetAxisSTW"';
+	        w#16#805A:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value of the parameter to be changed';
+	        w#16#805B:
+	            #tempLapcFr_Word2String_ErrorID := 'Error in the configuration of the hardware limit switch';
+	        w#16#805C:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal data type of the value to be written';
+	        w#16#805D:
+	            #tempLapcFr_Word2String_ErrorID := 'Direct PROFIdrive data connection from axis or external encoder OR Axis is in simulation OR Axis is configured as virtual axis';
+	        w#16#8062:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal approach value';
+	        w#16#8063:
+	            #tempLapcFr_Word2String_ErrorID := 'A valid mapping to the definition range (leading values) does not exist for the specified following value';
+	        w#16#8064:
+	            #tempLapcFr_Word2String_ErrorID := 'A valid mapping to the range of the function (following values) does not exist for the specified leading value';
+	        w#16#8070:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for leading value shift';
+	        w#16#8071:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because the axis is not in position-controlled mode';
+	        w#16#8074:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a "MC_Home" job is active';
+	        w#16#8075:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because no synchronization operation is active on the axis';
+	        w#16#8076:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because synchronization is being simulated at the specified axis';
+	        w#16#8077:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because no "MC_GearInPos" or "MC_GearIn" job is waiting or active';
+	        w#16#8078:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because no "MC_CamIn" job is waiting or active';
+	        w#16#8079:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a velocity gearing with "MC_GearInVelocity" is active';
+	        w#16#8080:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the following value offset';
+	        w#16#8081:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for leading value distancee';
+	        w#16#8082:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for leading value distance';
+	        w#16#8083:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the type of traversing of the leading/following value offset';
+	        w#16#8084:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for start position';
+	        w#16#808A:
+	            #tempLapcFr_Word2String_ErrorID := 'The job for the leading or following value offset can-not be executed because a following or leading value offset is active on the axis';
+	        w#16#808B:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because no camming is active on the axis';
+	        w#16#808C:
+	            #tempLapcFr_Word2String_ErrorID := 'Reversing the leading value is not permit-ted during an active leading value offset or following value offset';
+	        w#16#80A1:
+	            #tempLapcFr_Word2String_ErrorID := 'The order cannot be executed because a synchronous operation job is active';
+	        w#16#80A2:
+	            #tempLapcFr_Word2String_ErrorID := 'For one-time measuring with measuring range, the measuring range was run without a measuring edge being detected or the measuring range is invalid with the configured modulo axis settings';
+	        w#16#80A3:
+	            #tempLapcFr_Word2String_ErrorID := 'The measuring input job via PROFIdrive telegram could not be started because a homing job is active';
+	        w#16#80A5:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for start position of measuring range';
+	        w#16#80A6:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for end position of measuring range';
+	        w#16#80A7:
+	            #tempLapcFr_Word2String_ErrorID := 'A measurement is performed when measuring with the measuring range, but the calculated position is outside the specified measuring range. The measured value is discarded';
+	        w#16#80A8:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because camming is active on the axis';
+	        w#16#80A9:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because no synchronous gearing or camming is active on the axis';
+	        w#16#80AA:
+	            #tempLapcFr_Word2String_ErrorID := 'The cam contains no points or segments and cannot be interpolated';
+	        w#16#80AB:
+	            #tempLapcFr_Word2String_ErrorID := 'The cam is currently being used and cannot be interpolated';
+	        w#16#80AC:
+	            #tempLapcFr_Word2String_ErrorID := 'The cam contains incorrect points or segments and cannot be interpolated. ';
+	        w#16#80AD:
+	            #tempLapcFr_Word2String_ErrorID := 'The specified synchronous position is outside the definition range of the cam';
+	        w#16#80AE:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a kinematic motion is active';
+	        w#16#80B1:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the coordinate system';
+	        w#16#80B2:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the motion transition';
+	        w#16#80B3:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the rounding clearance';
+	        w#16#80B4:
+	            #tempLapcFr_Word2String_ErrorID := 'llegal specification for the joint position range';
+	        w#16#80B5:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the dynamic adap-tation';
+	        w#16#80B6:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification for the definition of the circular path';
+	        w#16#80B7:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification for the circular path auxiliary point';
+	        w#16#80B8:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the target position';
+	        w#16#80B9:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the orientation of the circular path';
+	        w#16#80BA:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification for the main plane of the circular path';
+	        w#16#80BB:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal radius specification';
+	        w#16#80BC:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal angle specification';
+	        w#16#80C1:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the zone type';
+	        w#16#80C2:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the zone position';
+	        w#16#80C3:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the reference sys-tem';
+	        w#16#80C4:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal coordinate specification';
+	        w#16#80C5:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the zone geometry';
+	        w#16#80C6:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the geometric parameters';
+	        w#16#80C7:
+	            #tempLapcFr_Word2String_ErrorID := 'The zone is not defined';
+	        w#16#80C8:
+	            #tempLapcFr_Word2String_ErrorID := 'A tool cannot be redefined during a motion or an active tool cannot be changed during a motion';
+	        w#16#80CA:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the tool number';
+	        w#16#80CB:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal specification of the object coordi-nate system';
+	        w#16#80CC:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a single axis motion is active at a kinemat-ics axis';
+	        w#16#80CD:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a "MC_GroupStop" job is active';
+	        w#16#80CE:
+	            #tempLapcFr_Word2String_ErrorID := 'The job sequence is used to capacity';
+	        w#16#80CF:
+	            #tempLapcFr_Word2String_ErrorID := 'The kinematics motion cannot be executed';
+	        w#16#80D1:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the use of the parameter "Position"';
+	        w#16#80D2:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for the target arm positioning space';
+	        w#16#80D3:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for the positions of the kinematics axes';
+	        w#16#80D4:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for the velocity of the kine-matics axes';
+	        w#16#80D5:
+	            #tempLapcFr_Word2String_ErrorID := 'Illegal value for the acceleration of the kinematics axes';
+	        w#16#80D6:
+	            #tempLapcFr_Word2String_ErrorID := 'An error occurred during the transformation';
+	        w#16#80D7:
+	            #tempLapcFr_Word2String_ErrorID := 'The job on the kinematics transformation cannot be executed';
+	        w#16#80D8:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the reference coordinate system';
+	        w#16#80DA:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value parameter "InitialObjectPosition"';
+	        w#16#80DB:
+	            #tempLapcFr_Word2String_ErrorID := 'Simulation mode of kinematics cannot be ended';
+	        w#16#80DC:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed, because only one job of this type can be active at the technology object';
+	        w#16#80E0:
+	            #tempLapcFr_Word2String_ErrorID := 'The kinematics motion cannot be executed';
+	        w#16#80E1:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the index of the starting point in the cam';
+	        w#16#80E2:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the index of the starting segment in the cam';
+	        w#16#80E3:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the index of the starting point in the "ArrayOfPoints';
+	        w#16#80E4:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the index of the starting segment in the "ArrayOfSegments"';
+	        w#16#80E5:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the number of points to be copied';
+	        w#16#80E6:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid value for the number of segments to be copied';
+	        w#16#80E7:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because a copy operation is active';
+	        w#16#80E8:
+	            #tempLapcFr_Word2String_ErrorID := 'The job cannot be executed because the cam is being interpolated';
+	        w#16#80E9:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid array of points to be copied';
+	        w#16#80EA:
+	            #tempLapcFr_Word2String_ErrorID := 'Invalid array of segments to be copied';
+	        w#16#80EB:
+	            #tempLapcFr_Word2String_ErrorID := 'SIMATIC Memory Card has insufficient storage space for the backup file';
+	        w#16#80EC:
+	            #tempLapcFr_Word2String_ErrorID := 'An error occurred when writing the backup file';
+	        w#16#80ED:
+	            #tempLapcFr_Word2String_ErrorID := 'More than two instances of the "MC_SaveAbsoluteEncoderData" instruction are used in the user program';
+	        w#16#80EE:
+	            #tempLapcFr_Word2String_ErrorID := 'Job cannot be executed';
+	        w#16#80EF:
+	            #tempLapcFr_Word2String_ErrorID := 'The SIMATIC Memory Card is write-protected';
+	        w#16#8FFF:
+	            #tempLapcFr_Word2String_ErrorID := 'Unspecified error';
+	            
+	        // ------------------------------
+	        // ----- WRITE TO PARAMETER -----
+	        // ------------------------------
+	        "ERR_WTP_RST":
+	            #tempLapcFr_Word2String_ErrorID := 'WRITETOPARAMETER ERR RESET';
+	        "ERR_WTP_CFG":
+	            #tempLapcFr_Word2String_ErrorID := 'WRITETOPARAMETER ERR CONFIG';
+	            
+	        ELSE  // Statement section ELSE
+	            #tempLapcFr_Word2String_ErrorID := 'Unspecified error';
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // french text
+	    // ---------------------------------------------------------------
+	ELSIF #language = 'FR' THEN
+	    CASE #wordErrorID OF
+	        w#16#0000:
+	            #tempLapcFr_Word2String_ErrorID := 'Pas d errorID';
+	        w#16#8001:
+	            #tempLapcFr_Word2String_ErrorID := 'Une alarme technologique (erreur sur l objet technologique) a ete declenchee pendant le traitement de l instruction Motion Control';
+	        w#16#8002:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification incorrecte de l objet technologique';
+	        w#16#8003:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification de vitesse invalide';
+	        w#16#8004:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification d acceleration invalide';
+	        w#16#8005:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification de deceleration invalide';
+	        w#16#8006:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification d a -coup invalide';
+	        w#16#8007:
+	            #tempLapcFr_Word2String_ErrorID := 'Specification de direction invalide ou les entrees "JogForward" et "JogBackward" sont regles sur TRUE simultanement';
+	        w#16#8008:
+	            #tempLapcFr_Word2String_ErrorID := 'Indication de distance invalide ou coordonnee cible relative specifiee incorrecte';
+	        w#16#8009:
+	            #tempLapcFr_Word2String_ErrorID := 'Indication de position invalide ou coordonnee cible absolue specifiee incorrecte';
+	        w#16#800A:
+	            #tempLapcFr_Word2String_ErrorID := 'Mode de fonctionnement inadmissible ou mode specifie incorrect';
+	        w#16#800B:
+	            #tempLapcFr_Word2String_ErrorID := 'Indication de mode d arret invalide';
+	        w#16#800C:
+	            #tempLapcFr_Word2String_ErrorID := 'Une seule instance de l instruction est autorisee par objet technologique';
+	        w#16#800D:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas autorisee dans l etat actuel. Un redemarrage ("Restart") est en cours d execution';
+	        w#16#800E:
+	            #tempLapcFr_Word2String_ErrorID := 'Si l objet technologique est debloque, un "Restart" est impossible';
+	        w#16#800F:
+	            #tempLapcFr_Word2String_ErrorID := 'La ta che n est pas executable, car l objet technologique est bloque';
+	        w#16#8010:
+	            #tempLapcFr_Word2String_ErrorID := 'Fonction de referencement non autorisee pour un codeur incremental';
+	        w#16#8011:
+	            #tempLapcFr_Word2String_ErrorID := 'Fonction de referencement non autorisee pour un codeur absolu';
+	        w#16#8012:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car le panneau de commande de l axe ou de la cinematique est actif';
+	        w#16#8013:
+	            #tempLapcFr_Word2String_ErrorID := 'La liaison en ligne entre la CPU et TIA Portal est defaillante';
+	        w#16#8014:
+	            #tempLapcFr_Word2String_ErrorID := 'Pas de memoire de commandes interne disponible';
+	        w#16#8015:
+	            #tempLapcFr_Word2String_ErrorID := 'L acquittement d erreur n est pas possible avec "MC_Reset". Erreur lors de la configuration de l objet technologique';
+	        w#16#8016:
+	            #tempLapcFr_Word2String_ErrorID := 'Les valeurs reelles ne sont pas valides';
+	        w#16#8017:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le numerateur du rapport de transmission';
+	        w#16#8018:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le denominateur du rapport de transmission';
+	        w#16#8019:
+	            #tempLapcFr_Word2String_ErrorID := 'La ta che n est pas executable. L axe asservi indique est l axe pilote initial pour la chaine de synchronisme';
+	        w#16#8021:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le decalage de la plage de valeur pilote';
+	        w#16#8022:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le decalage de la plage de valeur asservie';
+	        w#16#8023:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la mise a l echelle de la plage de valeur pilote';
+	        w#16#8024:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la mise a l echelle de la plage de valeur asservie';
+	        w#16#8026:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la distance de valeur pilote';
+	        w#16#8027:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour l application du profil de came';
+	        w#16#8034:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position de synchronisation de l axe pilote';
+	        w#16#8035:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position de synchronisation de l axe asservi';
+	        w#16#8036:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le mode de synchronisation/desynchronisation';
+	        w#16#8037:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position d arret de l axe asservi';
+	        w#16#8040:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position initiale de la came';
+	        w#16#8041:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position finale de la came-course';
+	        w#16#8042:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la duree d enclenchement de la came-temps';
+	        w#16#8043:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la limitation de force/couple';
+	        w#16#8044:
+	            #tempLapcFr_Word2String_ErrorID := 'L axe n est pas configure pour la la reduction de couple';
+	        w#16#8045:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une ta che Accostage de butee est active';
+	        w#16#8046:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache "MC_TorqueLimiting" ne peut pas etre desactivee a l etat "InClamping"';
+	        w#16#8047:
+	            #tempLapcFr_Word2String_ErrorID := 'Le mouvement mene a la butee';
+	        w#16#804A:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le couple de consigne additif';
+	        w#16#804B:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la limite de couple superieure';
+	        w#16#804C:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la limite de couple inferieure';
+	        w#16#804D:
+	            #tempLapcFr_Word2String_ErrorID := 'La valeur de la limite de couple superieure est inferieure ou egale a la valeur de la limite de couple inferieure';
+	        w#16#804E:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une ta che "MC_TorqueLimiting" ou "MC_TorqueRange" est active';
+	        w#16#804F:
+	            #tempLapcFr_Word2String_ErrorID := 'L axe n est pas configure pour des valeurs de couple supplementaires';
+	        w#16#8050:
+	            #tempLapcFr_Word2String_ErrorID := 'Numero de codeur invalide';
+	        w#16#8051:
+	            #tempLapcFr_Word2String_ErrorID := 'Numero de codeur de reference invalide';
+	        w#16#8055:
+	            #tempLapcFr_Word2String_ErrorID := 'Masquage de bit pour "MC_SetAxisSTW" non autorise';
+	        w#16#805A:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur non autorisee du parametre a modifier';
+	        w#16#805B:
+	            #tempLapcFr_Word2String_ErrorID := 'Erreur lors de la configuration des fins de course materiels';
+	        w#16#805C:
+	            #tempLapcFr_Word2String_ErrorID := 'Type de donnees de la valeur a ecrire non autorise';
+	        w#16#805D:
+	            #tempLapcFr_Word2String_ErrorID := 'Connexion des donnees PROFIdrive directe de l axe ou du codeur externe OU Axe en simulation OU Axe configure comme axe virtuel';
+	        w#16#8062:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur de proximite inadmissible';
+	        w#16#8063:
+	            #tempLapcFr_Word2String_ErrorID := 'Il n existe aucune representation valide de la valeur asservie indiquee dans la plage de definition (valeurs pilotes)';
+	        w#16#8064:
+	            #tempLapcFr_Word2String_ErrorID := 'Il n existe aucune representation valide de la valeur pilote indiquee dans la plage de valeurs (valeurs asservies)';
+	        w#16#8070:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le decalage de valeur pilote';
+	        w#16#8071:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car l axe n est pas en mode avec asservissement de position';
+	        w#16#8074:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une ta che "MC_Home" est active';
+	        w#16#8075:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car aucun synchronisme n est actif sur l axe';
+	        w#16#8076:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car un synchronisme est en cours de simulation sur l axe indique';
+	        w#16#8077:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable car aucune ta che "MC_GearIn" ou "MC_GearInPos" n est en attente ou active';
+	        w#16#8078:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable car aucune ta che "MC_CamIn" n est en attente ou active';
+	        w#16#8079:
+	            #tempLapcFr_Word2String_ErrorID := 'La commande n est pas executable, car un synchronisme de vitesse avec "MC_GearInVelocity" est actif';
+	        w#16#8080:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le decalage de valeur asservie';
+	        w#16#8081:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la distance de valeur pilote';
+	        w#16#8082:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la distance de valeur pilote';
+	        w#16#8083:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le mode de degagement du decalage de valeur pilote/valeur asservie';
+	        w#16#8084:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position initiale';
+	        w#16#808A:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache de decalage de valeur pilote/asservie n est pas executable car un decalage de valeur asservie/pilote est actif sur l axe';
+	        w#16#808B:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable car aucun synchronisme par profil de came n est actif sur l axe';
+	        w#16#808C:
+	            #tempLapcFr_Word2String_ErrorID := 'Une inversion du sens de la valeur pilote n est pas autorisee pendant un decalage de valeur pilote ou asservie';
+	        w#16#80A1:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une ta che de synchronisme est active';
+	        w#16#80A2:
+	            #tempLapcFr_Word2String_ErrorID := 'Lors de la mesure unique avec plage de mesure, la plage de mesure a ete traversee sans qu un front de mesure soit detecte ou la plage de mesure est invalide avec les parametres modulo d axe configures';
+	        w#16#80A3:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache de palpeur de mesure via telegramme PROFIdrive n a pas pu etre lancee, car une ta che de referencement est active';
+	        w#16#80A5:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position de debut de la plage de mesure';
+	        w#16#80A6:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la position de fin de la plage de mesure';
+	        w#16#80A7:
+	            #tempLapcFr_Word2String_ErrorID := 'Une mesure a ete realisee lors de la mesure avec plage de mesure, mais la position calculee se trouve en dehors de la plage de mesure indiquee. La valeur de mesure est rejetee';
+	        w#16#80A8:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car un synchronisme par profil de came est actif sur l axe';
+	        w#16#80A9:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable car aucun synchronisme par reducteur ou synchronisme par profil de came n est actif sur l axe';
+	        w#16#80AA:
+	            #tempLapcFr_Word2String_ErrorID := 'Le profil de came ne contient ni points ni segments et ne peut pas etre interpole';
+	        w#16#80AB:
+	            #tempLapcFr_Word2String_ErrorID := 'Utilisation du profil de came en cours, celui-ci ne peut pas etre interpole';
+	        w#16#80AC:
+	            #tempLapcFr_Word2String_ErrorID := 'Le profil de came contient des points ou segments errones et ne peut pas etre interpole (il contient un seul point, par exemple)';
+	        w#16#80AD:
+	            #tempLapcFr_Word2String_ErrorID := 'La position synchrone specifiee se situe hors de la plage de definition du profil de came';
+	        w#16#80AE:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car un mouvement cinematique est actif';
+	        w#16#80B1:
+	            #tempLapcFr_Word2String_ErrorID := 'Systeme de coordonnees specifie incorrect';
+	        w#16#80B2:
+	            #tempLapcFr_Word2String_ErrorID := 'Transition de mouvement specifiee incorrecte';
+	        w#16#80B3:
+	            #tempLapcFr_Word2String_ErrorID := 'Distance de transition specifiee incorrecte';
+	        w#16#80B4:
+	            #tempLapcFr_Word2String_ErrorID := 'Plage de positionnement cible de l articulation specifiee incorrecte';
+	        w#16#80B5:
+	            #tempLapcFr_Word2String_ErrorID := 'Adaptation de la dynamique specifiee incorrecte';
+	        w#16#80B6:
+	            #tempLapcFr_Word2String_ErrorID := 'Definition de trajectoire circulaire specifiee incorrecte';
+	        w#16#80B7:
+	            #tempLapcFr_Word2String_ErrorID := 'Point auxiliaire de trajectoire circulaire specifie incorrect';
+	        w#16#80B8:
+	            #tempLapcFr_Word2String_ErrorID := 'Position cible specifiee incorrecte';
+	        w#16#80B9:
+	            #tempLapcFr_Word2String_ErrorID := 'Orientation de trajectoire circulaire specifiee incorrecte';
+	        w#16#80BA:
+	            #tempLapcFr_Word2String_ErrorID := 'Plan principal de trajectoire circulaire specifie incorrect';
+	        w#16#80BB:
+	            #tempLapcFr_Word2String_ErrorID := 'Rayon specifie incorrect';
+	        w#16#80BC:
+	            #tempLapcFr_Word2String_ErrorID := 'Angle specifie incorrect';
+	        w#16#80C1:
+	            #tempLapcFr_Word2String_ErrorID := 'Type de zone specifie incorrect';
+	        w#16#80C2:
+	            #tempLapcFr_Word2String_ErrorID := 'Numero de zone specifie incorrect';
+	        w#16#80C3:
+	            #tempLapcFr_Word2String_ErrorID := 'Systeme de reference specifie incorrect';
+	        w#16#80C4:
+	            #tempLapcFr_Word2String_ErrorID := 'Coordonnees specifiees incorrectes';
+	        w#16#80C5:
+	            #tempLapcFr_Word2String_ErrorID := 'Geometrie de zone specifiee incorrecte';
+	        w#16#80C6:
+	            #tempLapcFr_Word2String_ErrorID := 'Parametres geometriques specifies incorrects';
+	        w#16#80C7:
+	            #tempLapcFr_Word2String_ErrorID := 'La zone n est pas definie';
+	        w#16#80C8:
+	            #tempLapcFr_Word2String_ErrorID := 'Un outil ne peut pas etre redefini pendant un mouvement ou un outil actif ne peut pas etre remplace pendant un mouvement';
+	        w#16#80CA:
+	            #tempLapcFr_Word2String_ErrorID := 'Numero d outil specifie incorrectt';
+	        w#16#80CB:
+	            #tempLapcFr_Word2String_ErrorID := 'Systeme de coordonnees de l objet specifie incorrect';
+	        w#16#80CC:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car un mouvement d axe individuel est active sur un axe de la cinematique';
+	        w#16#80CD:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une ta che "MC_GroupStop" est active';
+	        w#16#80CE:
+	            #tempLapcFr_Word2String_ErrorID := 'La chaine de ta ches est surchargee';
+	        w#16#80CF:
+	            #tempLapcFr_Word2String_ErrorID := 'Le mouvement de la cinematique n est pas executable';
+	        w#16#80D1:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour l utilisation du parametre "Position"';
+	        w#16#80D2:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur de volume de positionnement de l articulation cible incorrecte';
+	        w#16#80D3:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour les positions des axes de la cinematique';
+	        w#16#80D4:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour la vitesse des axes de la cinematique';
+	        w#16#80D5:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour l acceleration des axes de la cinematique';
+	        w#16#80D6:
+	            #tempLapcFr_Word2String_ErrorID := 'Une erreur s est produite lors de la transformation';
+	        w#16#80D7:
+	            #tempLapcFr_Word2String_ErrorID := 'La commande de transformation de la cinematique n est pas executable';
+	        w#16#80D8:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur inadmissible pour le systeme de coordonnees de reference';
+	        w#16#80DA:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur incorrecte du parametre "InitialObjectPosition"';
+	        w#16#80DB:
+	            #tempLapcFr_Word2String_ErrorID := 'Le mode simulation de la cinematique ne peut pas etre quitte';
+	        w#16#80DC:
+	            #tempLapcFr_Word2String_ErrorID := 'La tache n est pas executable, car une seule ta che de ce type peut etre active sur l objet technologique';
+	        w#16#80E0:
+	            #tempLapcFr_Word2String_ErrorID := 'Le mouvement de la cinematique n est pas executable';
+	        w#16#80E1:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour l indice du point initial dans le profil de came';
+	        w#16#80E2:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour l indice du segment initial dans le profil de came';
+	        w#16#80E3:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour l indice du point initial dans "ArrayOfPoints"';
+	        w#16#80E4:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour l indice du segment initial dans "ArrayOfSegments';
+	        w#16#80E5:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour le nombre de points a copier';
+	        w#16#80E6:
+	            #tempLapcFr_Word2String_ErrorID := 'Valeur invalide pour le nombre de segments a copier';
+	        w#16#80E7:
+	            #tempLapcFr_Word2String_ErrorID := 'Lata che n est pas executable, car une operation de copie est active';
+	        w#16#80E8:
+	            #tempLapcFr_Word2String_ErrorID := 'La commande n est pas executable, car le profil de came est interpole';
+	        w#16#80E9:
+	            #tempLapcFr_Word2String_ErrorID := 'Tableau es points a copier invalide';
+	        w#16#80EA:
+	            #tempLapcFr_Word2String_ErrorID := 'Tableau des segments a copier invalide';
+	        w#16#80EB:
+	            #tempLapcFr_Word2String_ErrorID := 'La carte memoire SIMATIC n a pas assez d espace memoire pour le fichier de sauvegarde';
+	        w#16#80EC:
+	            #tempLapcFr_Word2String_ErrorID := 'Une erreur est survenue en ecrivant sur le fichier de sauvegarde';
+	        w#16#80ED:
+	            #tempLapcFr_Word2String_ErrorID := 'Plus de deux instances de l instruction "MC_SaveAbsoluteEncoderData" sont utilisees dans le programme utilisateur';
+	        w#16#80EE:
+	            #tempLapcFr_Word2String_ErrorID := 'La commande n est pas executable';
+	        w#16#80EF:
+	            #tempLapcFr_Word2String_ErrorID := 'La carte memoire SIMATIC est protegee en ecriture';
+	        w#16#8FFF:
+	            #tempLapcFr_Word2String_ErrorID := 'Erreur non specifiee';
+	            
+	        // ------------------------------
+	        // ----- WRITE TO PARAMETER -----
+	        // ------------------------------
+	        "ERR_WTP_RST":
+	            #tempLapcFr_Word2String_ErrorID := 'WRITETOPARAMETER ERR RESET';
+	        "ERR_WTP_CFG":
+	            #tempLapcFr_Word2String_ErrorID := 'WRITETOPARAMETER ERR CONFIG';
+	            
+	        ELSE  // Statement section ELSE
+	            #tempLapcFr_Word2String_ErrorID := 'Erreur non specifiee';
+	    END_CASE;
+	    
+	    // ---------------------------------------------------------------
+	    // unknown language
+	    // ---------------------------------------------------------------    
+	ELSE
+	    #tempLapcFr_Word2String_ErrorID := 'Language unavailable';
+	END_IF;
+	
+	
+	//ErrorID code in string
+	//#tempString_WordErrorID := "LapcFr_Word2String"(#wordErrorID);
+	#tempErrorHTA := HTA(IN := #wordErrorID, N := 2, OUT => #tempString_WordErrorID);
+	//ErrorID + Text in string
+	#LAxisCtrlApcFr_Word2String_ErrorID := CONCAT(IN1 := CONCAT(IN1 := #tempString_WordErrorID , IN2 := ': '), IN2 := #tempLapcFr_Word2String_ErrorID);
+	
+	
+END_FUNCTION
+

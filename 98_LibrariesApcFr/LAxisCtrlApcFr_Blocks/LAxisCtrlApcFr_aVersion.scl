@@ -1,0 +1,80 @@
+﻿FUNCTION "LAxisCtrlApcFr_aVersion" : Void
+TITLE = LAxisCtrlApcFR
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//V2.0.1
+
+BEGIN
+	//=============================================================================================================================================
+	// SIEMENS SAS      RC-FR DI FA APC
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	// Restrictions:  TIA V19 or more in function of library version
+	// Requirements:  S7-1500T + LAxisCtrl_DBAny library
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	// Change log table:
+	// Version      Date        TIA    Expert in charge    Changes applied
+	// 01.01.00     08.09.2020  V16    SDA                 - First released version
+	// 01.02.00     16.10.2020  V16    SDA                 - driveReadyForOperation management partially in CONT language
+	//                                                     - Improvement of driveReadyForOperation error management
+	//                                                     - Modification of LAxisCtrlApcFR_SyncAxisCamming and LAxisCtrlApcFR_ChangeCamOnTheFly_SelectCam
+	//                                                       Possibility to change cam on fly without selecting a cam before
+	//                                                     - Language select in dataAxisConfig 
+	//                                                     - Improvement of some additionnal blocks
+	//                                                     - Axis Input in InOut
+	//                                                     - Deletion of DB DB_MC_Parameter
+	//                                                     - Hide some input/output if no parameter is assigned
+	// 01.03.00     16.10.2020  V16    RTO                 - CamInStandStill with sync direct autoselected
+	//                                                     - ChangeCamOnTheFly with a cam already used now possible
+	//                                                     - All Commands lock when error but Reset/Stop/StopFast/OpenBrake on FB SyncAxisCamming 
+	// 01.03.01     16.10.2020  V16    SDA                 - CamInStandStill with direction of absolute position
+	//                                                     - CamInStandStill : Absolute position done from MC_MoveAbsolute instruction (not axis.done)
+	//                                                     - CamInStandStill : take in account of master and slave scale
+	// 01.03.02     16.10.2020  V16    SDA                 - HomingOnSensor : take in account of sign of #homingPositionOffset
+	//                                                     - CamInStandStill : improvement function
+	// 16.00.01     26.08.2021  V16    RTO                 - CamInStandStill : add tolerance on repositioning, modification in the logic command for posabsolute and camIn, add modulo capability.
+	//                                                     - CamInStandStill : modification in the struct of configuration. Major modification to able CamInStandStill work alone.
+	//                                                     - CamInChangeOnTheFly : modification in the struct of configuration. Major modification to able CamInChangeOnTheFly work alone.
+	//                                                     - CamUsed : Now the cam's number in used 
+	// 16.00.02     11.01.2022  V16    SDA                 - Diagnostic improvement
+	//                                                     - Add static tag to recover all axis commands (statAxisCommandStatusDWord)
+	//                                                     - Replace fastStop input (LAxisCtrl function) by eStop function with MC_Stop instruction
+	//                                                     - Bugfix of CamInChangeOnTheFly and CamInStanStill
+	// 02.00.01     18.10.2021  V17    SDA                 - Version adapted for TIA V17 with CPU V2.9 / MC blocks V6.0 and LAxisCtrl library V1.2.0
+	//                                                     - Integration with LapcFr global library
+	//                                                     - Diagnostic improvement
+	//                                                     - Add endLess function
+	//                                                     - Add French language for default text
+	// 02.00.02     23.11.2021  V17    SDA                 - No block modification : change only folder structure
+	// 02.00.03     23.12.2021  V17    FGe                 - LaxisCtrlApcFr_CamInStandStill: bugfixes at #statMasterPosition for axis w/o modulo
+	// 02.00.04     04.02.2022  V17    FGe                 - LaxisCtrlApcFr_CamInStandStill: bugfix at "LAxisCtrl_UnpubMC_CamIn" for sync. position < 0
+	// 02.00.05     07.02.2022  V17    SDA                 - LaxisCtrlApcFr_xxx : management of LapcFr_EndLessMode V1.1.0 (additional features)
+	// 02.00.06     09.03.2022  V17    SDA                 - LaxisCtrlApcFr_CamInStandStill : bugfix to take into the new positioning dynamics at the first time
+	//                                                     - LaxisCtrlApcFr_CamInChangeOnTheFly : bugfix for cam interpolation
+	//                                                     - LaxisCtrlApcFr_CamInChangeOnTheFly : cam interpolation if cam data change
+	// 02.00.07     04.07.2022  V17    SDA                 - LaxisCtrlApcFr_CamInStandStill : bugfix for camIn with master offset
+	//                                                     - Diagnostic improvement : add error number in display text
+	//                                                     - LaxisCtrlApcFr_xxxxxAxis : actualTorqueMax ouput improvment with negative torque 
+	// 02.00.08     19.09.2022  V17    SDA                 - LaxisCtrlApcFr_CamInChangeOnTheFly : add features to change in absolute or relative mode
+	//                                                     - LaxisCtrlApcFr_CamInStandStill : status for command MC_ABSOLUTE aborted
+	// 03.00.00     03.03.2023  V18    SDA                 - Update to TIA V18 and Motion Control V7.0
+	//                                                     - Update LaxisCtrl and LAxisCtrl_Addon V1.3.0
+	//                                                     - Add haltSuperimposed function
+	//                                                     - Select actualTorque or actualForce according to the motor type
+	// 03.00.01     13.04.2023  V18    SDA                 - Bugfix to call GearInPos function and haltSuperImposed
+	//                                                     - Add gearInVelocity function
+	//                                                     - Change statAxisCommandStatusDWord.x0 to gearOutCamOut function (instead of enable function)
+	//                                                       Change statAxisCommandStatusDWord.x10 to gearInVelocity function (instead of fastStop function)
+	//                                                     - Add new errorID and errorDetail of V18 and status of LAxisCtrl V1.3.0 
+	//                                                     - Create new documentation V18.0.3
+	// 04.00.00     17.10.2024  V19    SDA                 - Only for S7-1500T
+	//                                                     - New library LAxisCtrl_DBAny V1.3.0 instead of LAxisCtrl
+	//                                                     - Modifcation of LAxisCtrlApcFr and Core functions with axis type in DB_Any
+	// 04.01.00     19.12.2024  V19    SDA                 - New group organisation
+	//                                                     - Add Historic Buffer function
+	//                                                     - Add SimulationOnOff function
+	//                                                     - Add outputs from statusWord of TO : outputsStatusWordTO
+	//                                                     - Add outputs from LAxisXtrl outputs : outputsLAxisCtrl_Axis
+	//=============================================================================================================================================
+	
+END_FUNCTION
+

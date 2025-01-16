@@ -1,0 +1,25 @@
+﻿FUNCTION "LAxisCtrlApcFr_UnpubCamIn10k" : Void
+TITLE = LAxisCtrl_UnpubCamIn10k
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.2
+//Support: tech.team.motioncontrol@siemens.com 
+   VAR_INPUT 
+      master {InstructionName := 'TO_Axis'; LibVersion := '8.0'} : TO_Axis;   // Slave axis specification
+      slave {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : TO_SynchronousAxis;   // Master axis specification
+      cam {InstructionName := 'TO_Cam_10k'; LibVersion := '8.0'} : TO_Cam_10k;   // Cam specification
+   END_VAR
+
+   VAR_IN_OUT 
+      instMC {InstructionName := 'MC_CAMIN'; LibVersion := '8.0'} : MC_CAMIN;   // Instance of MC_Instruction
+   END_VAR
+
+
+BEGIN
+	// Call of MC_Instruction
+	#instMC(Master := #master,
+	        Slave := #slave,
+	        Cam := #cam);
+END_FUNCTION
+

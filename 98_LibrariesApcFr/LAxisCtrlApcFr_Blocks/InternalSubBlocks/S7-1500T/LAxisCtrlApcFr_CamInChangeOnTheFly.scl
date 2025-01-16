@@ -1,0 +1,621 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_CamInChangeOnTheFly"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : APCFR
+VERSION : 2.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      master { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      cam1 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      cam2 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+      camInChangeOnTheFlyConfig { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "LAxisCtrlApcFr_typeCamInChangeOnTheFly";
+   END_VAR
+
+   VAR_OUTPUT 
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      commandAborted : Bool;
+      TOAlarmNr : UDInt;
+      errorValue : Int;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statTOAlarmNr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      statSlaveOffsetChangeOnTheFly { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      statMasterOffsetChangeOnTheFly { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      statEffectiveMasterOffset : LReal;
+      statEffectiveSlaveOffset : LReal;
+      statStartLeadingValueCamFollowing : LReal;
+      statEndLeadingValueCamUsed : LReal;
+      statGetFollowingValue_StartLeadingValueCamFollowing : LReal;
+      statGetFollowingValue_EndLeadingValueCamUsed : LReal;
+      statExecuteCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue : Bool;
+      statExecuteCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue : Bool;
+      statErrorChangeCamOnFlyGetOffset { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statCamToInterpolate : DB_ANY;
+      statCamUsed : DB_ANY;
+      statCamFollowing : DB_ANY;
+      statErrorConfig { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      instLAxisCtrl_UnpubMc_CamIn { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubMC_CamIn";
+      instMc_InterpolateCam { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubMC_Interpolate";
+      instCam1_LaxisCtrlApcFr_GetCamStatusWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubGetCamStatusWord";
+      instCam2_LaxisCtrlApcFr_GetCamStatusWord { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_UnpubGetCamStatusWord";
+      instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue : "LAxisCtrlApcFr_UnpubMC_GetCamFollowingValue";
+      instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue : "LAxisCtrlApcFr_UnpubMC_GetCamFollowingValue";
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+      tempRefSyncAxis {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : REF_TO TO_SynchronousAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+   VAR CONSTANT 
+      S0000_IDDLE : Int := 0;
+      S0010_INIT : Int := 10;
+      S0020_CHK_CFG : Int := 20;
+      S0030_INTERPOLATE_CAM : Int := 30;
+      S0040_GET_CAM_OFFSET : Int := 40;
+      S0050_LAUNCH_CAMIN : Int := 50;
+      S0300_DONE : Int := 300;
+      S0900_ERR : Int := 900;
+      S0910_ABORT : Int := 910;
+      S9999_ABNORMALEND : Int := 9999;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	    //===================================================================================================
+	    // SIEMENS SAS    RC-FR DI FA APC
+	    //---------------------------------------------------------------------------------------------------
+	    // Restrictions:  T-CPU
+	    // Requirements:  ---
+	    //---------------------------------------------------------------------------------------------------
+	    // Description:   Homing absolute or incremental encoder on fixed stop with torque limitation in Nm
+	    //                and possibility to home before or after retracting axis after fixed stop detection
+	    //---------------------------------------------------------------------------------------------------
+	    // Change log table:
+	    // Version  Date        TIA   Expert  Changes applied
+	    // 01.00    2018.06.08  ---   SDA     First released version
+	    // 01.01    2018.06.29  ---   FGe     Use of MC_ExecuteTemplate_APCFR
+	    // 01.02    2019.05.13  V15.1 FGe     From V15.1 HW limits can not be deactivated
+	    // 02.00    2020.02.12  V15.1 FGe     Interface extended to TO configuration
+	    // 03.00    2020.09.01  V16   FGe     From V16, HW Limits can be deactivated w/o TO Restart with inst. MC_WriteParameter
+	    //                                    Added fault if homing velocity < 2*standstill threshold
+	    //                                    Added SetPositionAtFixedStop
+	    // 04.00    2021.06.01  V16   FGe     Splitted in 2 blos to fit with LAxisCtrlAPcfr requirements
+	    //                                    -> LapcFr_McHome + LapcFr_HomingToFixedStop
+	    // 04.01    2021.09.03  V16   FGe     Removed Power ON sequence within the bloc                               
+	    // 04.02    2022.04.20  V17   FGe     Moved constants to global definition
+	    //                                    bugfix at velocity threshold cheking
+	    //                                    MoveAbs to cancel clamping only when homed
+	    // 04.03    2022.06.03  V17   FGe     Removed ckecking of StandstillSignal.VelocityThreshold
+	    //                                    Renamed error constant "ERR_HFS_HOME_POS_OFFSET" to "ERR_HFS_POS_OFFSET_CHECK_SIGN_OR_VALUE"
+	    // 04.04    2022.07.07  V17   SDa     Check torque limiting in motor side case
+	    // 05.00    2024.09.11  V19   SDa     Adaptation with DBAny type #axis
+	    //---------------------------------------------------------------------------------------------------
+	    // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	    // e.g;Firmware 3.1 and Motion Control V8.0 for TIA V19
+	    //===================================================================================================
+	END_REGION
+	
+	#tempRefPosAxis ?= #master;
+	#tempRefSyncAxis ?= #axis;
+	
+	IF (#tempRefPosAxis <> NULL) AND (#tempRefSyncAxis <> NULL) THEN
+	    // Master Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    // Slave Axis type is TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        //------------------------------------------------------------------------------------------
+	        // TODO: Insert here instances of MC instructions.
+	        // inputs / outputs to be set / used in main section
+	        
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #instCam1_LaxisCtrlApcFr_GetCamStatusWord(Cam := #cam1);
+	        #instCam2_LaxisCtrlApcFr_GetCamStatusWord(Cam := #cam2);
+	        
+	        #instMc_InterpolateCam(cam := #statCamToInterpolate);
+	        
+	        #instLAxisCtrl_UnpubMc_CamIn(Master := #tempRefPosAxis^,
+	                                     Slave := #tempRefSyncAxis^,
+	                                     Cam := #statCamFollowing,
+	                                     MasterOffset := #statMasterOffsetChangeOnTheFly,
+	                                     SlaveOffset := #statSlaveOffsetChangeOnTheFly,
+	                                     SyncProfileReference := #camInChangeOnTheFlyConfig.syncProfileReference,
+	                                     MasterStartDistance := #camInChangeOnTheFlyConfig.masterStartDistance,
+	                                     ApplicationMode := #camInChangeOnTheFlyConfig.applicationMode);
+	        
+	        #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue(cam := #statCamUsed,
+	                                                                 leadingValue := #statEndLeadingValueCamUsed);
+	        
+	        #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue(cam := #statCamFollowing,
+	                                                                      leadingValue := #statStartLeadingValueCamFollowing);
+	        
+	        
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION CALL HANDLING
+	        
+	        //Check if FB is triggered
+	        IF #execute AND NOT #statExecuteOld
+	            // See below: FB should finish current job before new job can be started
+	            // with rising edge of execute
+	            AND NOT #statBusy // Remove the first comment characters if FB should finish current
+	            // job before new job can be started with rising edge of execute
+	        THEN
+	            REGION FB TRIG (FIRST CALL)
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Reset State
+	                #statNextStep := #S0010_INIT;
+	                // Reset Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Reset Commands
+	                #instMc_InterpolateCam.execute := FALSE;
+	                #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                // reset memories
+	                #statMasterOffsetChangeOnTheFly := 0.0;
+	                #statSlaveOffsetChangeOnTheFly := 0.0;
+	                //-----------------------------------------------------------------------------------
+	                
+	                //Functionality is busy
+	                #statDone := FALSE;
+	                #statBusy := TRUE;
+	                #statCommandAborted := FALSE;
+	                //Reset diagnostic
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                // Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_FIRST_CALL";
+	                #subStatus := #statSubErrorID;
+	                #errorValue := #statErrorValue;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently inactive
+	        ELSIF NOT #execute AND NOT #statBusy AND NOT #statExecuteOld
+	        THEN
+	            REGION NO CALL
+	                //Outputs are reset with falling edge of enable input
+	                //Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_NO_CALL";
+	                #subStatus := "ERR_NO_ERROR";
+	                #errorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            
+	            //FB is currently executed and not finished
+	        ELSIF #statBusy OR #execute
+	        THEN
+	            REGION BUSY
+	                #statExecuteOld := #execute OR #statBusy;
+	            END_REGION
+	            
+	            //FB finished job
+	        ELSE
+	            REGION LAST CALL
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Reset Status
+	                #statActualStep := #statNextStep := #S0000_IDDLE;
+	                // Reset Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Reset Commands
+	                #instMc_InterpolateCam.execute := FALSE;
+	                #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                // reset memories
+	                #statMasterOffsetChangeOnTheFly := 0.0;
+	                #statSlaveOffsetChangeOnTheFly := 0.0;
+	                //-----------------------------------------------------------------------------------
+	                
+	                #statDone := FALSE;
+	                #statBusy := FALSE;
+	                #statCommandAborted := FALSE;
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN; //Wait for start of functionality 
+	            END_REGION
+	            
+	        END_IF;
+	    END_REGION
+	    
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statAborted   Execution is aborted by an external command
+	        //  - statError:    Error happened in program
+	        //  - statStatus:   Identifier for current error
+	        //  - statSubStatus:Identifier for subcall error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - status, subStatus, aborted, busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //-----------------------------------------------------------------------------------
+	        
+	        // update running step
+	        #statActualStep := #statNextStep;
+	        CASE #statActualStep OF
+	                
+	            #S0010_INIT: // Init instances depending on configuration 
+	                REGION S0010-INIT
+	                    // Reset Commands
+	                    #instMc_InterpolateCam.execute := FALSE;
+	                    #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                    #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                    #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                    
+	                    // Next step
+	                    #statNextStep := #S0020_CHK_CFG;
+	                END_REGION
+	                
+	            #S0020_CHK_CFG: // Check homing configuration
+	                REGION S0020-CHECK CONDITIONS
+	                    
+	                    //Check camInChangeOntheFly configuration
+	                    IF #camInChangeOnTheFlyConfig.masterStartDistance <= 0 THEN
+	                        // Synchronisation distance invalid 
+	                        #statErrorID := "ERR_CCOF_DISTANCE_SYNC";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSIF #camInChangeOnTheFlyConfig.syncProfileReference <> 1 AND #camInChangeOnTheFlyConfig.syncProfileReference <> 3 THEN
+	                        // Synchronisation mode invalid
+	                        #statErrorID := "ERR_CCOF_MODE_SYNC";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSIF #cam1 = 0 THEN
+	                        // No cam selected
+	                        #statErrorID := "ERR_CCOF_CAM1_EMPTY";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSIF #cam2 = 0 THEN
+	                        // No cam selected
+	                        #statErrorID := "ERR_CCOF_CAM2_EMPTY";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSIF NOT #instCam1_LaxisCtrlApcFr_GetCamStatusWord.camUsed AND (NOT #instCam1_LaxisCtrlApcFr_GetCamStatusWord.interpolated OR #instCam1_LaxisCtrlApcFr_GetCamStatusWord.camDataChange) THEN
+	                        // Next step
+	                        #statCamToInterpolate := #cam1;
+	                        #statNextStep := #S0030_INTERPOLATE_CAM;
+	                    ELSIF NOT #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camUsed AND (NOT #instCam2_LaxisCtrlApcFr_GetCamStatusWord.interpolated OR #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camDataChange) THEN
+	                        // Next step
+	                        #statCamToInterpolate := #cam2;
+	                        #statNextStep := #S0030_INTERPOLATE_CAM;
+	                        // ELSIF NOT #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camUsed AND (NOT #instCam2_LaxisCtrlApcFr_GetCamStatusWord.interpolated OR #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camDataChange) THEN
+	                        //     Next step
+	                        //     #statCamToInterpolate := #cam2;
+	                        //     #statNextStep := #S0030_INTERPOLATE_CAM2;
+	                    ELSIF #instCam1_LaxisCtrlApcFr_GetCamStatusWord.interpolated AND #instCam2_LaxisCtrlApcFr_GetCamStatusWord.interpolated THEN
+	                        // Next step
+	                        #statNextStep := #S0040_GET_CAM_OFFSET;
+	                    ELSIF #instCam1_LaxisCtrlApcFr_GetCamStatusWord.camUsed AND #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camUsed THEN
+	                        // Cam1 and Cam2 used
+	                        #statErrorID := "ERR_CCOF_CAM1_AND_CAM2_USED";
+	                        #statNextStep := #S0900_ERR;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0030_INTERPOLATE_CAM:
+	                REGION S0030-INTERPOLATE CAM
+	                    // Enable interpolation timeout
+	                    #statStepTimeOut_PT := "LAPCFR_CCOF_INTERPOLATE_CAM_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    #instMc_InterpolateCam.execute := TRUE;
+	                    
+	                    IF #instMc_InterpolateCam.error THEN
+	                        // Reset write request
+	                        #instMc_InterpolateCam.execute := FALSE;
+	                        IF #statCamToInterpolate = #cam1 THEN
+	                            #statErrorID := "ERR_CCOF_INTERPOLATE_CAM1";
+	                        ELSE
+	                            #statErrorID := "ERR_CCOF_INTERPOLATE_CAM2";
+	                        END_IF;
+	                        #statSubErrorID := #instMc_InterpolateCam.errorID;
+	                        #instMc_InterpolateCam.execute := FALSE;
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMc_InterpolateCam.done THEN
+	                        // Reset interpolate request
+	                        #instMc_InterpolateCam.execute := FALSE;
+	                        // Next step
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0020_CHK_CFG;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // Interpolate cam timeout
+	                        IF #statCamToInterpolate = #cam1 THEN
+	                            #statErrorID := "ERR_CCOF_INTERPOLATE_CAM1_TIMEOUT";
+	                        ELSE
+	                            #statErrorID := "ERR_CCOF_INTERPOLATE_CAM2_TIMEOUT";
+	                        END_IF;
+	                        // Next step
+	                        #instMc_InterpolateCam.execute := FALSE;
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0900_ERR;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0040_GET_CAM_OFFSET:
+	                REGION S0040-GET_CAM_OFFSET  
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_CCOF_GET_CAM_OFFSET_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    IF NOT #instCam1_LaxisCtrlApcFr_GetCamStatusWord.camUsed THEN
+	                        #statCamUsed := #cam2;
+	                        #statCamFollowing := #cam1;
+	                    ELSE
+	                        #statCamUsed := #cam1;
+	                        #statCamFollowing := #cam2;
+	                    END_IF;
+	                    
+	                    // Get master and cam data
+	                    "LAxisCtrlApcFr_ChangeCamOnTheFly_GetMasterCamData"(camUsed := #statCamUsed,
+	                                                                        camFollowing := #statCamFollowing,
+	                                                                        axis := #tempRefSyncAxis^,
+	                                                                        effectiveMasterOffset => #statEffectiveMasterOffset,
+	                                                                        effectiveSlaveOffset => #statEffectiveSlaveOffset,
+	                                                                        startLeadingValueCamFollowing => #statStartLeadingValueCamFollowing,
+	                                                                        endLeadingValueCamUsed => #statEndLeadingValueCamUsed);
+	                    
+	                    // --- Get Master offset ---
+	                    IF #camInChangeOnTheFlyConfig.masterOffsetAbs THEN
+	                        // master offset in absolute mode
+	                        #statMasterOffsetChangeOnTheFly := #statEndLeadingValueCamUsed + #camInChangeOnTheFlyConfig.masterOffsetValue;
+	                    ELSE
+	                        // master offset in relative mode
+	                        #statMasterOffsetChangeOnTheFly := #statEndLeadingValueCamUsed + #statEffectiveMasterOffset + #camInChangeOnTheFlyConfig.masterOffsetValue - #statStartLeadingValueCamFollowing;
+	                    END_IF;
+	                    
+	                    // --- Get slave offset ---
+	                    IF #camInChangeOnTheFlyConfig.slaveOffsetAbs THEN
+	                        // Slave offset in absolute mode (or used mode for the first execution)
+	                        #statSlaveOffsetChangeOnTheFly := #camInChangeOnTheFlyConfig.slaveOffsetValue;
+	                        // Next step
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0050_LAUNCH_CAMIN;
+	                    ELSE
+	                        // Slave offset in relative mode
+	                        // Execute cmd
+	                        #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := TRUE;
+	                        #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := TRUE;
+	                        
+	                        IF #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.error THEN
+	                            // GetFollowingValue error
+	                            #statErrorID := "ERR_CCOF_GET_OFFSET_CAM_TIMEOUT";
+	                            #statSubErrorID := #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.errorID;
+	                            // Reset cmd
+	                            #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            // Next step
+	                            #statNextStep := #S0900_ERR;
+	                            
+	                        ELSIF #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.done THEN
+	                            // GetFollowingValue done => slave offset calculation
+	                            IF (NOT #instCam1_LaxisCtrlApcFr_GetCamStatusWord.camUsed AND NOT #instCam2_LaxisCtrlApcFr_GetCamStatusWord.camUsed) THEN
+	                                #statGetFollowingValue_EndLeadingValueCamUsed := #tempRefSyncAxis^.ActualPosition;
+	                            ELSE
+	                                #statGetFollowingValue_EndLeadingValueCamUsed := #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.value;
+	                            END_IF;
+	                            #statGetFollowingValue_StartLeadingValueCamFollowing := #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.value;
+	                            #statSlaveOffsetChangeOnTheFly := (#statGetFollowingValue_EndLeadingValueCamUsed + #statEffectiveSlaveOffset + #camInChangeOnTheFlyConfig.slaveOffsetValue) - #statGetFollowingValue_StartLeadingValueCamFollowing;
+	                            // Reset cmd
+	                            #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            // Next step
+	                            #statNextStep := #S0050_LAUNCH_CAMIN;
+	                            
+	                        ELSIF #instStepTimeOut.Q THEN
+	                            // GetFollowingValue timeout
+	                            #statErrorID := "ERR_CCOF_GET_OFFSET_CAM_TIMEOUT";
+	                            #instCamFollowing_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #instCamUsed_LaxisCtrlApcFr_UnpubMC_GetCamFollowingValue.execute := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            // Next step
+	                            #statNextStep := #S0900_ERR;
+	                        END_IF;
+	                        
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            #S0050_LAUNCH_CAMIN: // Change cam on the fly
+	                REGION S0050-LAUNCH_CAMIN                            
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_CCOF_CAMIN_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Execute CamIn
+	                    #instLAxisCtrl_UnpubMc_CamIn.Execute := TRUE;
+	                    
+	                    IF #instLAxisCtrl_UnpubMc_CamIn.Error THEN
+	                        // CamIn error
+	                        #statErrorID := "ERR_CCOF_CAMIN";
+	                        #statSubErrorID := #instLAxisCtrl_UnpubMc_CamIn.ErrorID;
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instLAxisCtrl_UnpubMc_CamIn.CommandAborted THEN
+	                        // MC_CamIn aborted
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                        #statNextStep := #S0910_ABORT;
+	                        
+	                    ELSIF #instLAxisCtrl_UnpubMc_CamIn.InSync AND (#tempRefSyncAxis^.StatusSynchronizedMotion.ActualCam = #statCamFollowing) THEN
+	                        // MC_CamIn done
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                        #statNextStep := #S0300_DONE;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // axis stalled (eg limit too low / already on fixed stop)
+	                        #statErrorID := "ERR_CCOF_CAMIN_TIMEOUT";
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instLAxisCtrl_UnpubMc_CamIn.Execute := FALSE;
+	                        #statNextStep := #S0900_ERR;
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            #S0300_DONE://Function Ok
+	                REGION S0300-FUNCTION_DONE
+	                    #statDone := TRUE;
+	                END_REGION ;
+	                
+	            #S0900_ERR:  // Fault in sequence
+	                REGION S0900-FUNCTION_FAULTY 
+	                    // Check if end cause is technology alarm on TO
+	                    IF #statSubErrorID = 16#8001 THEN
+	                        #statTOAlarmNr := #tempRefSyncAxis^.ErrorDetail.Number;
+	                    ELSE
+	                        #statTOAlarmNr := 0;
+	                    END_IF;
+	                    
+	                    // Next step
+	                    #statCommandAborted := FALSE;
+	                    #statError := TRUE;
+	                END_REGION ;
+	                
+	            #S0910_ABORT: // CommandAborted
+	                REGION S0910-SEQUENCE ABORTED
+	                    #statCommandAborted := TRUE;
+	                END_REGION
+	                
+	        END_CASE;
+	        
+	        IF (#statNextStep = #S0900_ERR AND #statActualStep <> #S0900_ERR)
+	            OR (#statNextStep = #S0910_ABORT AND #statActualStep <> #S0910_ABORT) THEN
+	            // Store faulty step
+	            #statErrorValue := #statActualStep;
+	        END_IF;
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION ERROR_HANDLING
+	        
+	        //Error occured in request
+	        IF #statError
+	        THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly if not set in user program region
+	            // #statStatus := ...;
+	            // #statSubStatus := ...;
+	            //
+	            #status := #statErrorID;
+	            #subStatus := #statSubErrorID;
+	            #TOAlarmNr := #statTOAlarmNr;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            // Resquest aborted
+	        ELSIF #statCommandAborted
+	        THEN
+	            #statDone := FALSE;
+	            #statBusy := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_EXECUTION_ABORTED";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request finished
+	        ELSIF #statDone
+	        THEN
+	            #statBusy := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	        END_IF;
+	        
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #busy := #statBusy;
+	        #commandAborted := #statCommandAborted;
+	        #error := #statError;
+	    END_REGION
+	    //--------------------------------------------------------------------------
+	    
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+	
+END_FUNCTION_BLOCK
+

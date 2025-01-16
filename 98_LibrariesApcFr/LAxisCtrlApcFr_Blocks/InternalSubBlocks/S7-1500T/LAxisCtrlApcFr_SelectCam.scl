@@ -1,0 +1,36 @@
+﻿FUNCTION "LAxisCtrlApcFr_SelectCam" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      cam1 : DB_ANY;
+      camSelection : UInt;
+      cam2 : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      TOCam : DB_ANY;
+      error : Bool;
+      camSelected { S7_HiddenAssignment := 'Show'} : UInt;
+   END_VAR
+
+
+BEGIN
+	#error := FALSE;
+	
+	IF #camSelection = 1 THEN
+	    #TOCam := #cam1;
+	    #camSelected := 1;
+	    
+	    
+	ELSIF #camSelection = 2 THEN
+	    #TOCam := #cam2;
+	    #camSelected := 2;
+	    
+	ELSE
+	    #error := TRUE;
+	    #camSelected := 0;
+	    
+	END_IF;
+	
+END_FUNCTION
+

@@ -1,0 +1,207 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_HystoricBuffer"
+TITLE = LAxisCtrl_Axis
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : AxisCtrl
+VERSION : 1.3
+//Support: tech.team.motioncontrol@siemens.com 
+   VAR_INPUT 
+      ActualTime { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time_Of_Day;
+      enable { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // TRUE: Enable functionality of FB
+      enableAxis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // TRUE: Set axis enable; FALSE: Remove axis enable
+      resetAxis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Acknowledgment of technology alarms or restart of the axis (depending on configuration)
+      openBrake { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // TRUE: Unconditionally open holding brake if axis is not enabled (e.g. for service purposes). Note: Do not modify this input while disabling of the axis is active (input enableAxis := FALSE and output axisEnabled = TRUE)
+      jogForward { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Move an axis in jog mode (forward); Falling edge: Stop jogging
+      jogBackward { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Move an axis in jog mode (backward); Falling edge: Stop jogging
+      moveVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Move an axis at constant velocity/speed
+      stop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Brake an axis until it comes to a standstill. Note: MC_Halt is triggered internally
+      fastStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Brake an axis until it comes to a standstill (with fastStop dynamics). Note: MC_Halt is triggered internally
+      torqueLimiting { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool := FALSE;   // TRUE: Enable force/torque limiting
+      homing { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Home axis
+      posRelative { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Move an axis relative to its position when execution of the job began
+      posAbsolute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Move an axis to an absolute position
+      posSuperimposed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a superimposed positioning
+      haltSuperimposed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Decelerate a superimposed motion to zero velocity
+      gearInRelative { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a gearing operation (relative)
+      gearInAbsolute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a gearing operation (absolute)
+      gearInVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a gearing operation (velocity synchronous)
+      gearOutCamOut { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: End a gearing/camming operation
+      camIn { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a camming operation
+      phasing { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start a phasing operation
+      offset { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;   // Rising edge: Start an offset operation
+   END_VAR
+
+   VAR_IN_OUT 
+      HistoricBufferCmd : "LAxisCtrlApcFr_typeHistoricBufferCmd";
+   END_VAR
+
+   VAR 
+      i { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      instR_TRIG {InstructionName := 'R_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : Array[1..22] of R_TRIG;
+      instF_Trig {InstructionName := 'F_TRIG'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : Array[1..22] of F_TRIG;
+   END_VAR
+
+
+BEGIN
+	//edge Up detection
+	#instR_TRIG[1](CLK := #enable);
+	#instR_TRIG[2](CLK := #enableAxis);
+	#instR_TRIG[3](CLK := #resetAxis);
+	#instR_TRIG[4](CLK := #openBrake);
+	#instR_TRIG[5](CLK := #jogForward);
+	#instR_TRIG[6](CLK := #jogBackward);
+	#instR_TRIG[7](CLK := #moveVelocity);
+	#instR_TRIG[8](CLK := #stop);
+	#instR_TRIG[9](CLK := #fastStop);
+	#instR_TRIG[10](CLK := #torqueLimiting);
+	#instR_TRIG[11](CLK := #homing);
+	#instR_TRIG[12](CLK := #posRelative);
+	#instR_TRIG[13](CLK := #posAbsolute);
+	#instR_TRIG[14](CLK := #posSuperimposed);
+	#instR_TRIG[15](CLK := #haltSuperimposed);
+	#instR_TRIG[16](CLK := #gearInRelative);
+	#instR_TRIG[17](CLK := #gearInAbsolute);
+	#instR_TRIG[18](CLK := #gearInVelocity);
+	#instR_TRIG[19](CLK := #gearOutCamOut);
+	#instR_TRIG[20](CLK := #camIn);
+	#instR_TRIG[21](CLK := #phasing);
+	#instR_TRIG[22](CLK := #offset);
+	
+	//edge Down detection
+	#instF_Trig[1](CLK := #enable);
+	#instF_Trig[2](CLK := #enableAxis);
+	#instF_Trig[3](CLK := #resetAxis);
+	#instF_Trig[4](CLK := #openBrake);
+	#instF_Trig[5](CLK := #jogForward);
+	#instF_Trig[6](CLK := #jogBackward);
+	#instF_Trig[7](CLK := #moveVelocity);
+	#instF_Trig[8](CLK := #stop);
+	#instF_Trig[9](CLK := #fastStop);
+	#instF_Trig[10](CLK := #torqueLimiting);
+	#instF_Trig[11](CLK := #homing);
+	#instF_Trig[12](CLK := #posRelative);
+	#instF_Trig[13](CLK := #posAbsolute);
+	#instF_Trig[14](CLK := #posSuperimposed);
+	#instF_Trig[15](CLK := #haltSuperimposed);
+	#instF_Trig[16](CLK := #gearInRelative);
+	#instF_Trig[17](CLK := #gearInAbsolute);
+	#instF_Trig[18](CLK := #gearInVelocity);
+	#instF_Trig[19](CLK := #gearOutCamOut);
+	#instF_Trig[20](CLK := #camIn);
+	#instF_Trig[21](CLK := #phasing);
+	#instF_Trig[22](CLK := #offset);
+	
+	//Historic buffer
+	FOR #i := 1 TO 22 DO
+	    IF #instR_TRIG[#i].Q THEN //Edge UP
+	        #HistoricBufferCmd.Index := #HistoricBufferCmd.Index + 1;
+	        IF #HistoricBufferCmd.Index > "LAPCFR_MAX_HISTORIC_BUFFER_CMD" THEN
+	            #HistoricBufferCmd.Index := 0;
+	        END_IF;
+	        #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].TimeStartCommand := #ActualTime;
+	        #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].State := WString#'TRUE';
+	        CASE #i OF
+	            1:  // enable
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'enable';
+	            2:  // enableAxis
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'enableAxis';
+	            3:  // resetAxis
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'resetAxis';
+	            4:  // openBrake
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'openBrake';
+	            5:  // jogForward
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'jogForward';
+	            6:  //  jogBackward
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'jogBackward';
+	            7:  // moveVelocity
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'moveVelocity';
+	            8:  // stop
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'stop';
+	            9:  // fastStop
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'fastStop';
+	            10:  // torqueLimiting
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'torqueLimiting';
+	            11:  // homing
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'homing';
+	            12:  // posRelative
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posRelative';
+	            13:  // posAbsolute
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posAbsolute';
+	            14:  // posSuperimposed
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posSuperimposed';
+	            15:  // haltSuperimposed
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'haltSuperimposed';
+	            16:  // gearInRelative
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInRelative';
+	            17:  // gearInAbsolute
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInAbsolute';
+	            18:  // gearInVelocity
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInVelocity';
+	            19:  // gearOutCamOut
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearOutCamOut';
+	            20:  // camIn
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'camIn';
+	            21:  // phasing
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'phasing';
+	            22:  // offset
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'offset';
+	        END_CASE;
+	    ELSIF #instF_Trig[#i].Q THEN //Edge DOWN
+	        #HistoricBufferCmd.Index := #HistoricBufferCmd.Index + 1;
+	        IF #HistoricBufferCmd.Index > "LAPCFR_MAX_HISTORIC_BUFFER_CMD" THEN
+	            #HistoricBufferCmd.Index := 0;
+	        END_IF;
+	        #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].TimeStartCommand := #ActualTime;
+	        #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].State := WString#'FALSE';
+	        CASE #i OF
+	            1:  // enable
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'enable';
+	            2:  // enableAxis
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'enableAxis';
+	            3:  // resetAxis
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'resetAxis';
+	            4:  // openBrake
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'openBrake';
+	            5:  // jogForward
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'jogForward';
+	            6:  //  jogBackward
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'jogBackward';
+	            7:  // moveVelocity
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'moveVelocity';
+	            8:  // stop
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'stop';
+	            9:  // fastStop
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'fastStop';
+	            10:  // torqueLimiting
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'torqueLimiting';
+	            11:  // homing
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'homing';
+	            12:  // posRelative
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posRelative';
+	            13:  // posAbsolute
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posAbsolute';
+	            14:  // posSuperimposed
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'posSuperimposed';
+	            15:  // haltSuperimposed
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'haltSuperimposed';
+	            16:  // gearInRelative
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInRelative';
+	            17:  // gearInAbsolute
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInAbsolute';
+	            18:  // gearInVelocity
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearInVelocity';
+	            19:  // gearOutCamOut
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'gearOutCamOut';
+	            20:  // camIn
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'camIn';
+	            21:  // phasing
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'phasing';
+	            22:  // offset
+	                #HistoricBufferCmd.BufferDetail[#HistoricBufferCmd.Index].CommandType := WString#'offset';
+	        END_CASE;
+	    END_IF;
+	END_FOR;
+	
+	
+END_FUNCTION_BLOCK
+

@@ -1,0 +1,78 @@
+﻿FUNCTION_BLOCK "LKinAxisCtrl_GroupPowered"
+TITLE = LKinCtrl_MC_GroupPower
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : LKinCtrl
+VERSION : 1.1
+//FB provides funcitonalities to enable all axes (TO_PositioningAxis or TO_SynchronousAxis) interconnected with TO Kinematics
+   VAR_INPUT 
+      FirstCycle : Bool;   // TRUE: Enable axes; FALSE: Disable axes
+   END_VAR
+
+   VAR_OUTPUT 
+      axesEnabled { ExternalWritable := 'False'} : Bool := FALSE;   // TRUE: all axes of axesGroup enabled; FALSE: all axes of axesGroup disabled
+   END_VAR
+
+   VAR_IN_OUT 
+      axesGroup {InstructionName := 'TO_Kinematics'; LibVersion := '8.0'} : TO_Kinematics;   // reference to the axesGroup
+   END_VAR
+
+   VAR 
+      statAxes { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1..#MAX_NO_OF_AXES] of DB_ANY;   // array of struct containing axis DB_ANY and type of axis
+      statExsitingAxes { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1..#MAX_NO_OF_AXES] of Bool;   // static counter for existing axes
+   END_VAR
+
+   VAR_TEMP 
+      tempAxis : Int;   // temporary counter variable for axes
+      tempRefToAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // temporary reference to axis
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_NO_OF_AXES : Int := 6;   // maximum number of axes
+   END_VAR
+
+
+BEGIN
+	REGION INIT
+	    IF #FirstCycle THEN
+	        // check available & connected axes at TO_Kinematics
+	        // assign DB number of connected axis to DB_ANY type
+	        #statAxes[1] := #axesGroup.KinematicsAxis.A1;
+	        #statAxes[2] := #axesGroup.KinematicsAxis.A2;
+	        #statAxes[3] := #axesGroup.KinematicsAxis.A3;
+	        #statAxes[4] := #axesGroup.KinematicsAxis.A4;
+	        #statAxes[5] := #axesGroup.KinematicsAxis.A5;
+	        #statAxes[6] := #axesGroup.KinematicsAxis.A6;
+	        
+	        FOR #tempAxis := 1 TO #MAX_NO_OF_AXES DO
+	            // Existing axes
+	            IF #statAxes[#tempAxis] <> 0 THEN
+	                #statExsitingAxes[#tempAxis] := TRUE;
+	            ELSE
+	                #statExsitingAxes[#tempAxis] := FALSE;
+	            END_IF;
+	        END_FOR;
+	    END_IF;
+	END_REGION
+	
+	REGION MAIN
+	    FOR #tempAxis := 1 TO #MAX_NO_OF_AXES DO
+	        // Check if axis is used
+	        IF #statExsitingAxes[#tempAxis] THEN
+	            
+	            // Cast
+	            #tempRefToAxis ?= #statAxes[#tempAxis];
+	            
+	            // Get StatusWord Enabled
+	            IF #tempRefToAxis^.StatusWord.%X0 = TRUE THEN
+	                #axesEnabled := TRUE;
+	            ELSE
+	                #axesEnabled := FALSE;
+	                RETURN;
+	            END_IF;
+	        END_IF;
+	    END_FOR;
+	END_REGION
+	
+END_FUNCTION_BLOCK
+

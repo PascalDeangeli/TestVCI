@@ -1,0 +1,237 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="camUsed" Datatype="TO_Cam" Version="8.0" />
+    <Member Name="camFollowing" Datatype="TO_Cam" Version="8.0" />
+    <Member Name="axis" Datatype="TO_SynchronousAxis" Version="8.0" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="effectiveMasterOffset" Datatype="LReal" />
+    <Member Name="effectiveSlaveOffset" Datatype="LReal" />
+    <Member Name="endLeadingValueCamUsed" Datatype="LReal" />
+    <Member Name="startLeadingValueCamFollowing" Datatype="LReal" />
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Temp" />
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <IsIECCheckEnabled>true</IsIECCheckEnabled>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <Name>LAxisCtrlApcFr_ChangeCamOnTheFly_GetMasterCamData</Name>
+      <Namespace />
+      <Number>19508</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>true</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="5" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="6" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <NewLine UId="21" />
+  <LineComment UId="22">
+    <Text UId="23"> Get offset</Text>
+  </LineComment>
+  <NewLine UId="24" />
+  <Access Scope="LocalVariable" UId="25">
+    <Symbol UId="26">
+      <Component Name="effectiveMasterOffset" UId="27" />
+    </Symbol>
+  </Access>
+  <Blank UId="28" />
+  <Token Text=":=" UId="29" />
+  <Blank UId="30" />
+  <Access Scope="LocalVariable" UId="31">
+    <Symbol UId="32">
+      <Component Name="axis" UId="33" />
+      <Token Text="." UId="34" />
+      <Component Name="StatusSynchronizedMotion" UId="35" />
+      <Token Text="." UId="36" />
+      <Component Name="MasterOffset" UId="37" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="38" />
+  <NewLine UId="39" />
+  <Access Scope="LocalVariable" UId="40">
+    <Symbol UId="41">
+      <Component Name="effectiveSlaveOffset" UId="42" />
+    </Symbol>
+  </Access>
+  <Blank UId="43" />
+  <Token Text=":=" UId="44" />
+  <Blank UId="45" />
+  <Access Scope="LocalVariable" UId="46">
+    <Symbol UId="47">
+      <Component Name="axis" UId="48" />
+      <Token Text="." UId="49" />
+      <Component Name="StatusSynchronizedMotion" UId="50" />
+      <Token Text="." UId="51" />
+      <Component Name="SlaveOffset" UId="52" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="53" />
+  <NewLine UId="54" />
+  <Access Scope="LocalVariable" UId="55">
+    <Symbol UId="56">
+      <Component Name="endLeadingValueCamUsed" UId="57" />
+    </Symbol>
+  </Access>
+  <Blank UId="58" />
+  <Token Text=":=" UId="59" />
+  <Blank UId="60" />
+  <Access Scope="LocalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="camUsed" UId="63" />
+      <Token Text="." UId="64" />
+      <Component Name="StatusCam" UId="65" />
+      <Token Text="." UId="66" />
+      <Component Name="EndLeadingValue" UId="67" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="68" />
+  <NewLine UId="69" />
+  <Access Scope="LocalVariable" UId="70">
+    <Symbol UId="71">
+      <Component Name="startLeadingValueCamFollowing" UId="72" />
+    </Symbol>
+  </Access>
+  <Blank UId="73" />
+  <Token Text=":=" UId="74" />
+  <Blank UId="75" />
+  <Access Scope="LocalVariable" UId="76">
+    <Symbol UId="77">
+      <Component Name="camFollowing" UId="78" />
+      <Token Text="." UId="79" />
+      <Component Name="StatusCam" UId="80" />
+      <Token Text="." UId="81" />
+      <Component Name="StartLeadingValue" UId="82" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="83" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="7" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>fr-FR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>de-DE</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>zh-CN</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="11" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="12" CompositionName="Items">
+            <AttributeList>
+              <Culture>fr-FR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="13" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="14" CompositionName="Items">
+            <AttributeList>
+              <Culture>de-DE</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="15" CompositionName="Items">
+            <AttributeList>
+              <Culture>zh-CN</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

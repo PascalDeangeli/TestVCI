@@ -1,0 +1,44 @@
+﻿FUNCTION_BLOCK "LMG7ApcFr_Main"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      FirstCycle : Bool;
+      Reset : Bool;
+      Frequency_1s : Bool;
+      ActualTime : Time_Of_Day;
+   END_VAR
+
+   VAR_IN_OUT 
+      DataG7 : Array[1.."LMG7_MAX_NUMBER_OF_GRAPH"] of "LMG7ApcFr_TypeInterface";
+   END_VAR
+
+   VAR 
+      i : Int;
+      instG7_sub { S7_SetPoint := 'False'} : Array[1.."LMG7_MAX_NUMBER_OF_GRAPH"] of "LMG7ApcFr_Std";
+   END_VAR
+
+
+BEGIN
+	FOR #i := 1 TO "LMG7_MAX_NUMBER_OF_GRAPH" DO
+	    #instG7_sub[#i](FirstCycle:=#FirstCycle,
+	                    InterlockGeneral:=#DataG7[#i].In.InterlockGeneral,
+	                    Reset:=#Reset,
+	                    StepNumberStarted:=#DataG7[#i].In.StepNumberStarted,
+	                    Frequency_1s:=#Frequency_1s,
+	                    DebugMode:= #DataG7[#i].In.ModeDebug,
+	                    ActualTime:=#ActualTime,
+	                    ActiveStep=>#DataG7[#i].Out.ActiveStep,
+	                    StateStopped=>#DataG7[#i].Out.StateStopped,
+	                    StateStarting=>#DataG7[#i].Out.StateStarting,
+	                    StateStarted=>#DataG7[#i].Out.StateStarted,
+	                    StateStopping=>#DataG7[#i].Out.StateStopping,
+	                    StateError=>#DataG7[#i].Out.StateError,
+	                    State=>#DataG7[#i].Out.State,
+	                    StepError=>#DataG7[#i].Out.StepNumberErrorTimeOut,
+	                    HistoricBuffer=>#DataG7[#i].Out.HistoricBuffer,
+	                    StepRequested:=#DataG7[#i].In.StepRequested,
+	                    StepTimeOut:=#DataG7[#i].In.StepTimeOut);
+	END_FOR;
+	
+END_FUNCTION_BLOCK
+

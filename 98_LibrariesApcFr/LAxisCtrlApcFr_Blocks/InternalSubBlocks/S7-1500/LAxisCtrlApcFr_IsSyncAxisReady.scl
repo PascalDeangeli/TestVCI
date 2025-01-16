@@ -1,0 +1,118 @@
+﻿FUNCTION "LAxisCtrlApcFr_IsSyncAxisReady" : Void
+TITLE = LApcFr_IsSyncAxisReady
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : LApcFr
+VERSION : 1.0
+   VAR_INPUT 
+      axis {InstructionName := 'TO_SynchronousAxis'; LibVersion := '8.0'} : TO_SynchronousAxis;   //  Axis technology object
+      "S120 Infeed in Operation" : Bool;   // (For booksize drive) TRUE: infeed in operation
+      "STO or SOS active" : Bool;   // FALSE: both STO and SOS signal are TRUE (no active stop request)
+   END_VAR
+
+   VAR_OUTPUT 
+      axisReady : Bool;   // TRUE: Axis ready
+      driveInOperation : Bool;   // TRUE: Drive is running
+      restartInProgress : Bool;   // TO Restarting
+      inSimulation : Bool;   // TRUE: Axis is in simulation
+      encoderValid : Bool;   // TRUE: Encoder value is valid
+      communicationOk : Bool;   // TRUE: Communication with drive is established
+   END_VAR
+
+   VAR_TEMP 
+      tempPosControledAxis : Bool;
+      tempAxisReady : Bool;
+      tempRestarting : Bool;
+      tempInSimulation : Bool;
+      tempDriveInOperation : Bool;
+      tempOperativeSensor : UInt;   //  Temp value for operative sensor
+      tempCommunicationOk : Bool;
+      tempEncoderValid : Bool;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Check conditions for axis to be operated
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2019.07.25  ---   FGe   release
+	  // 01.01    2020.01.31  ---   FGe   Minor changes
+	  // 02.00    2021.04.23  ---   FGe   Specific bloc for TO_Synchronous
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===========================================================================================
+	END_REGION
+	
+	REGION INITIALISATION  
+	  // axis actual contol mode (Position / speed)
+	  #tempPosControledAxis := #axis.StatusWord.%X28;
+	END_REGION
+	
+	REGION PROCESSING
+	  IF NOT #tempPosControledAxis THEN
+	    // Check for speed controlled axis
+	    IF #axis.StatusWord.%X2 THEN
+	      #tempRestarting := TRUE;
+	    ELSE
+	      #tempRestarting := FALSE;
+	      #tempInSimulation := (#axis.Simulation.Mode = 1);
+	      #tempDriveInOperation := #axis.StatusDrive.InOperation;
+	      #tempEncoderValid := FALSE;
+	      #tempCommunicationOk := #axis.StatusDrive.CommunicationOK;
+	    END_IF;
+	  ELSE
+	    // Check position controlled axis
+	    IF #axis.StatusWord.%X2 THEN
+	      #tempRestarting := TRUE;
+	    ELSE
+	      #tempRestarting := FALSE;
+	      #tempInSimulation := (#axis.Simulation.Mode = 1);
+	      #tempDriveInOperation := #axis.StatusDrive.InOperation;
+	      #tempOperativeSensor := UDINT_TO_UINT(IN := #axis.OperativeSensor);
+	      IF #tempOperativeSensor > 0 AND #tempOperativeSensor < 5 THEN
+	        // Status of actual encoder value
+	        // 0: "NOT_VALID" (NOT valid)
+	        // 1: "WAITING_FOR_VALID" (waiting FOR valid status)
+	        // 2: "valid" (valid)
+	        #tempEncoderValid := (#axis.StatusSensor[#tempOperativeSensor].State = 2);
+	        IF #tempEncoderValid THEN
+	          #tempCommunicationOk := #axis.StatusDrive.CommunicationOK
+	          AND #axis.StatusSensor[#tempOperativeSensor].CommunicationOK;
+	        ELSE
+	          #tempCommunicationOk := FALSE;
+	        END_IF;
+	      ELSE
+	        #tempEncoderValid := FALSE;
+	        #tempCommunicationOk := FALSE;
+	      END_IF;
+	    END_IF;
+	  END_IF;
+	  
+	  IF #tempRestarting THEN
+	    #tempAxisReady := FALSE;
+	  ELSE
+	    #tempAxisReady := #tempCommunicationOk AND (NOT #tempPosControledAxis OR #tempEncoderValid) AND #"S120 Infeed in Operation" AND NOT #"STO or SOS active";
+	  END_IF;
+	END_REGION
+	
+	REGION OUTPUTS
+	  #axisReady := #tempAxisReady;
+	  #restartInProgress := #tempRestarting;
+	  #driveInOperation := #tempDriveInOperation;
+	  #inSimulation := #tempInSimulation;
+	  #encoderValid := #tempEncoderValid;
+	  #communicationOk := #tempCommunicationOk;
+	  
+	  RETURN;
+	END_REGION
+END_FUNCTION
+

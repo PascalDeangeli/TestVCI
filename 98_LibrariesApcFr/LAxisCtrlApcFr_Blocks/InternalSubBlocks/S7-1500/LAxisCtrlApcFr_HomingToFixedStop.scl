@@ -1,0 +1,1037 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_HomingToFixedStop"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : APCFR
+VERSION : 2.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge starts action once
+      homePosition { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := 0.0;   // Position de référence
+      homePositionOffset { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := 0.0;   // Offset of reference point
+      setHomeAtFixedStop { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Bool := FALSE;   // FALSE: #Position = Axis position after offset  / TRUE :  #Position = axis position at fixed stop
+      clampingTorque { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := 0.0;   // Couple de détection de butée
+      clampingDelay { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : Time := T#100ms;   // Temps d'attente en butée
+      homingVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := 0.0;   // Vitesse de recherche de la butée. Le signe définit la direction
+      homingTimeout { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time := T#30s;   // TimeOut pour atteindre la butée
+      returnVelocity { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'Show'} : LReal := -1.0;   // Vitesse de dégagement. Pour une valeur ≤ 0, utilisation de la configuration dynamique par défaut du TO
+      acceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Accélération. Pour une valeur ≤ 0, utilisation de la configuration dynamique par défaut du TO
+      deceleration { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Décélération. Pour une valeur ≤ 0, utilisation de la configuration dynamique par défaut du TO
+      jerk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_HiddenAssignment := 'HideIfNoParamAssigned'} : LReal := -1.0;   // Jerk. Pour une valeur ≤ 0, utilisation de la configuration dynamique par défaut du TO
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Commanded action has been completed successfully
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: FB is not finished and new output values can be expected
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge informs that an error occurred during the execution of
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_NO_CALL";   // Current status of FB
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "ERR_NO_ERROR";
+      TOAlarmNr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt := 0;
+      errorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 0;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statTOAlarmNr { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statSequenceAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statAxisStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         boError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boStandstill { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boEnabled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHomed { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boTorqueLimitingActive { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boRunningCommand { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boInClamping { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      END_STRUCT;
+      statAxisCfg { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         boSWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         boHWLimit { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      END_STRUCT;
+      statOperativeSensor { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      statHomingDirection { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal := 1.0;
+      statFixedStopReleased { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statHWLimitsDisabled { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := FALSE;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      instClampingDelay {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+      instWriteToParameter {InstructionName := 'MC_WRITEPARAMETER'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_WRITEPARAMETER;
+      instTorqueLimiting {InstructionName := 'MC_TORQUELIMITING'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_TORQUELIMITING;
+      instMoveVelocity {InstructionName := 'MC_MOVEVELOCITY'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEVELOCITY;
+      instMoveRelative {InstructionName := 'MC_MOVERELATIVE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVERELATIVE;
+      instCancelClamping {InstructionName := 'MC_MOVEABSOLUTE'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_MOVEABSOLUTE;
+      instHome {InstructionName := 'MC_HOME'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_HOME;
+      instStop {InstructionName := 'MC_STOP'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_STOP;
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      statClampingDelay_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statWriteTOParameterValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool := TRUE;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+   VAR CONSTANT 
+      S0000_IDDLE : Int := 0;
+      S0010_INIT : Int := 10;
+      S0020_CHK_CFG : Int := 20;
+      S0030_DIS_HW_LIMITS : Int := 30;
+      S0040_DIS_SW_LIMITS : Int := 40;
+      S0110_EN_TQ_LIMIT : Int := 110;
+      S0120_APPROACH : Int := 120;
+      S0130_DETECT_CLAMPING : Int := 130;
+      S0140_DELAY_CLAMPING : Int := 140;
+      S0150_RETRACT : Int := 150;
+      S0160_HOME : Int := 160;
+      S0170_DIS_TQ_LIMIT : Int := 170;
+      S0210_EN_HW_LIMITS : Int := 210;
+      S0220_EN_SW_LIMITS : Int := 220;
+      S0300_DONE : Int := 300;
+      S0900_ERR : Int := 900;
+      S0910_ABORT : Int := 910;
+      S1000_CANCELCLAMPING : Int := 1000;
+      S1010_CANCELCOMMAND : Int := 1010;
+      S1020_RESTORE_PREV_STATE : Int := 1020;
+      S9999_ABNORMALEND : Int := 9999;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  T-CPU
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Homing absolute or incremental encoder on fixed stop with torque limitation in Nm
+	  //                and possibility to home before or after retracting axis after fixed stop detection
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2018.06.08  ---   SDA     First released version
+	  // 01.01    2018.06.29  ---   FGe     Use of MC_ExecuteTemplate_APCFR
+	  // 01.02    2019.05.13  V15.1 FGe     From V15.1 HW limits can not be deactivated
+	  // 02.00    2020.02.12  V15.1 FGe     Interface extended to TO configuration
+	  // 03.00    2020.09.01  V16   FGe     From V16, HW Limits can be deactivated w/o TO Restart with inst. MC_WriteParameter
+	  //                                    Added fault if homing velocity < 2*standstill threshold
+	  //                                    Added SetPositionAtFixedStop
+	  // 04.00    2021.06.01  V16   FGe     Splitted in 2 blos to fit with LAxisCtrlAPcfr requirements
+	  //                                    -> LapcFr_McHome + LapcFr_HomingToFixedStop
+	  // 04.01    2021.09.03  V16   FGe     Removed Power ON sequence within the bloc                               
+	  // 04.02    2022.04.20  V17   FGe     Moved constants to global definition
+	  //                                    bugfix at velocity threshold cheking
+	  //                                    MoveAbs to cancel clamping only when homed
+	  // 04.03    2022.06.03  V17   FGe     Removed ckecking of StandstillSignal.VelocityThreshold
+	  //                                    Renamed error constant "ERR_HFS_HOME_POS_OFFSET" to "ERR_HFS_POS_OFFSET_CHECK_SIGN_OR_VALUE"
+	  // 04.04    2022.07.07  V17   SDA     Check torque limiting in motor side case
+	  // 05.00    2024.09.11  V19   SDa     Adaptation with DBAny type #axis
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	  //===================================================================================================
+	END_REGION
+	
+	
+	REGION INITIALISATION
+	    #tempRefPosAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefPosAxis <> NULL) THEN
+	    // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        //------------------------------------------------------------------------------------------
+	        // TODO: Insert here instances of MC instructions.
+	        // inputs / outputs to be set / used in main section
+	        
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #instClampingDelay(IN := #statClampingDelay_IN,
+	                           PT := #clampingDelay);
+	        
+	        #instWriteToParameter(Axis := #tempRefPosAxis^,
+	                              ParameterNumber := 1000,
+	                              Value := #statWriteTOParameterValue);
+	        
+	        #instTorqueLimiting(Axis := #tempRefPosAxis^,
+	                            Mode := 1);
+	        
+	        #instMoveVelocity(Axis := #tempRefPosAxis^,
+	                          Velocity := #homingVelocity,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk,
+	                          Current := FALSE,
+	                          PositionControlled := TRUE);
+	        
+	        #instHome(Axis := #tempRefPosAxis^);
+	        
+	        #instMoveRelative(Axis := #tempRefPosAxis^,
+	                          Velocity := #returnVelocity,
+	                          Acceleration := #acceleration,
+	                          Deceleration := #deceleration,
+	                          Jerk := #jerk);
+	        
+	        #instCancelClamping(Axis := #tempRefPosAxis^,
+	                            Velocity := #tempRefPosAxis^.DynamicLimits.MaxVelocity,
+	                            Acceleration := #tempRefPosAxis^.DynamicLimits.MaxAcceleration,
+	                            Deceleration := #tempRefPosAxis^.DynamicLimits.MaxDeceleration,
+	                            Jerk := #tempRefPosAxis^.DynamicLimits.MaxJerk);
+	        
+	        #instStop(Axis := #tempRefPosAxis^,
+	                  Mode := 0,
+	                  Deceleration := #deceleration,
+	                  Jerk := #jerk,
+	                  AbortAcceleration := TRUE);
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION CALL HANDLING
+	        
+	        //Check if FB is triggered
+	        IF #execute AND NOT #statExecuteOld
+	            // See below: FB should finish current job before new job can be started
+	            // with rising edge of execute
+	            AND NOT #statBusy // Remove the first comment characters if FB should finish current
+	            // job before new job can be started with rising edge of execute
+	        THEN
+	            REGION FB TRIG (FIRST CALL)
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Reset State
+	                #statNextStep := #S0010_INIT;
+	                // Reset Timers
+	                #statStepTimeOut_IN := FALSE;
+	                #statClampingDelay_IN := FALSE;
+	                // Reset Commands
+	                #instWriteToParameter.Execute := FALSE;
+	                #instTorqueLimiting.Enable := FALSE;
+	                #instMoveVelocity.Execute := FALSE;
+	                #instMoveRelative.Execute := FALSE;
+	                #instCancelClamping.Execute := FALSE;
+	                #instHome.Execute := FALSE;
+	                #instStop.Execute := FALSE;
+	                // reset memories
+	                #statFixedStopReleased := FALSE;
+	                #statHWLimitsDisabled := FALSE;
+	                //-----------------------------------------------------------------------------------
+	                
+	                //Functionality is busy
+	                #statDone := FALSE;
+	                #statBusy := TRUE;
+	                #statCommandAborted := FALSE;
+	                //Reset diagnostic
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                // Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_FIRST_CALL";
+	                #subStatus := #statSubErrorID;
+	                #TOAlarmNr := #statTOAlarmNr;
+	                #errorValue := #statErrorValue;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently inactive
+	        ELSIF NOT #execute AND NOT #statBusy AND NOT #statExecuteOld
+	        THEN
+	            REGION NO CALL
+	                //Outputs are reset with falling edge of enable input
+	                //Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_NO_CALL";
+	                #subStatus := "ERR_NO_ERROR";
+	                #TOAlarmNr := 0;
+	                #errorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            
+	            //FB is currently executed and not finished
+	        ELSIF #statBusy OR #execute
+	        THEN
+	            REGION BUSY
+	                #statExecuteOld := #execute OR #statBusy;
+	            END_REGION
+	            
+	            //FB finished job
+	        ELSE
+	            REGION LAST CALL
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Reset Status
+	                #statActualStep := #statNextStep := #S0000_IDDLE;
+	                // Reset Timers
+	                #statStepTimeOut_IN := FALSE;
+	                #statClampingDelay_IN := FALSE;
+	                // Reset Commands
+	                #instWriteToParameter.Execute := FALSE;
+	                #instTorqueLimiting.Enable := FALSE;
+	                #instMoveVelocity.Execute := FALSE;
+	                #instMoveRelative.Execute := FALSE;
+	                #instCancelClamping.Execute := FALSE;
+	                #instHome.Execute := FALSE;
+	                #instStop.Execute := FALSE;
+	                // reset memories
+	                #statFixedStopReleased := FALSE;
+	                #statHWLimitsDisabled := FALSE;
+	                //-----------------------------------------------------------------------------------
+	                
+	                #statDone := FALSE;
+	                #statBusy := FALSE;
+	                #statCommandAborted := FALSE;
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statTOAlarmNr := 0;
+	                #statErrorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN; //Wait for start of functionality 
+	            END_REGION
+	            
+	        END_IF;
+	    END_REGION
+	    
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statAborted   Execution is aborted by an external command
+	        //  - statError:    Error happened in program
+	        //  - statStatus:   Identifier for current error
+	        //  - statSubStatus:Identifier for subcall error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - status, subStatus, aborted, busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //-----------------------------------------------------------------------------------
+	        
+	        // axis status
+	        #statAxisStatus.boStandstill := #tempRefPosAxis^.StatusWord.%X7;
+	        #statAxisStatus.boEnabled := #tempRefPosAxis^.StatusWord.%X0;
+	        #statAxisStatus.boError := #tempRefPosAxis^.StatusWord.%X1;
+	        #statAxisStatus.boHomed := #tempRefPosAxis^.StatusWord.%X5;
+	        #statAxisStatus.boTorqueLimitingActive := #tempRefPosAxis^.StatusWord.%X26;
+	        #statAxisStatus.boRunningCommand := #tempRefPosAxis^.StatusWord.%X6;
+	        #statAxisStatus.boInClamping := #tempRefPosAxis^.StatusWord.%X30;
+	        
+	        // update running step
+	        #statActualStep := #statNextStep;
+	        CASE #statActualStep OF
+	                
+	            #S0010_INIT: // Init instances depending on configuration 
+	                REGION INITIALISATION
+	                    // Operative sensor
+	                    #statOperativeSensor := UDINT_TO_UINT(IN := #tempRefPosAxis^.OperativeSensor);
+	                    
+	                    // Save software limits status
+	                    #statAxisCfg.boSWLimit := #tempRefPosAxis^.PositionLimits_SW.Active;
+	                    
+	                    // save Hardware limits configuration
+	                    #statAxisCfg.boHWLimit := #tempRefPosAxis^.PositionLimits_HW.Active;
+	                    
+	                    // Approach and Retraction Direction
+	                    // IF tempRefPosAxis^.Sensor[#statOperativeSensor].ActiveHoming.Direction = 1 THEN
+	                    IF #homingVelocity < 0 THEN
+	                        // Negative direction
+	                        #statHomingDirection := -1.0;
+	                        #instMoveVelocity.Direction := 2;
+	                    ELSE
+	                        // Positive direction
+	                        #statHomingDirection := 1.0;
+	                        #instMoveVelocity.Direction := 1;
+	                    END_IF;
+	                    
+	                    // Reference position
+	                    IF #setHomeAtFixedStop THEN
+	                        #instHome.Position := #homePosition + #homePositionOffset;
+	                    ELSE
+	                        #instHome.Position := #homePosition;
+	                    END_IF;
+	                    
+	                    // Torque limit
+	                    #instTorqueLimiting.Limit := #clampingTorque;
+	                    
+	                    // Next step
+	                    #statNextStep := #S0020_CHK_CFG;
+	                END_REGION
+	                
+	            #S0020_CHK_CFG: // Check homing configuration
+	                REGION CHECK CONDITIONS
+	                    
+	                    IF (#tempRefPosAxis^.VirtualAxis.Mode = 1) THEN
+	                        // Torque limiting not possible for virtual axis 
+	                        #statErrorID := "ERR_HFS_VIRTUAL_AXIS";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF (#tempRefPosAxis^.Simulation.Mode = 1) THEN
+	                        // Torque limiting not possible in simulation mode 
+	                        #statErrorID := "ERR_HFS_SIMULATED_AXIS";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #statAxisStatus.boTorqueLimitingActive THEN
+	                        // Torque limiting Command already active     
+	                        #statErrorID := "ERR_HFS_MC_TORQUE_LIMIT_ACTIVE";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF (#instTorqueLimiting.Limit <= 0)
+	                        OR (#instTorqueLimiting.Limit > #tempRefPosAxis^.Actor.DriveParameter.ReferenceTorque AND #tempRefPosAxis^.TorqueLimiting.LimitBase = 0) THEN
+	                        // Torque value not valid    
+	                        #statErrorID := "ERR_HFS_TORQUE_VALUE";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF (#homingVelocity = 0.0) THEN
+	                        // homing must be different from 0
+	                        #statErrorID := "ERR_HFS_HOMINGVELOCITY";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF (#returnVelocity = 0.0) THEN
+	                        // homing and return velocity must be dufferent from 0 and opposite
+	                        #statErrorID := "ERR_HFS_RETURNVELOCITY";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF // Negative direction
+	                        (#homingVelocity < 0 AND #homePositionOffset <= #tempRefPosAxis^.Clamping.PositionTolerance) OR
+	                        // Positive direction
+	                        (#homingVelocity >= 0 AND #homePositionOffset >= - #tempRefPosAxis^.Clamping.PositionTolerance) THEN
+	                        // retract distance must be opposite to approache direction AND strictly greater than clamping position reference
+	                        #statErrorID := "ERR_HFS_POS_OFFSET_CHECK_SIGN_OR_VALUE";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                        (* standstillSignal.VelocityThreshold no more used in the bloc
+	                        ELSIF (ABS(IN:=#homingVelocity) < 2 * tempRefPosAxis^.StandstillSignal.VelocityThreshold) THEN
+	                          // Homing velocity must be greater than twice standstill signal threshold 
+	                          #statErrorID := "ERR_HFS_STANDSTILLTHRESHOLD";
+	                          #statNextStep := #S0900_ERR;
+	                          *)
+	                        
+	                    ELSIF NOT (#statAxisStatus.boEnabled) THEN
+	                        // Axis must be powered ON
+	                        #statErrorID := "ERR_HFS_POWERON";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #tempRefPosAxis^.StatusWord.%X28 THEN
+	                        // axis enabled in non  position controled mode
+	                        // (Last move command was in non-position controled mode)
+	                        // Torque limiting not possible
+	                        #statErrorID := "ERR_HFS_NOTINPOSCTRL_MODE";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSE
+	                        // Next step
+	                        #statNextStep := #S0030_DIS_HW_LIMITS;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0030_DIS_HW_LIMITS:
+	                // From V16 Hardware limits can  be disabled / enabled even if axis is powered ON
+	                // Reset memory HW Limits have to be reactivated
+	                #statHWLimitsDisabled := FALSE;
+	                
+	                IF #statAxisCfg.boHWLimit THEN
+	                    // Initialize request
+	                    #statWriteTOParameterValue := FALSE;
+	                    #instWriteToParameter.Execute := TRUE;
+	                    
+	                    IF #instWriteToParameter.Error THEN
+	                        // Reset write request
+	                        #instWriteToParameter.Execute := FALSE;
+	                        #statErrorID := "ERR_HFS_HW_LIMITS";
+	                        #statSubErrorID := #instWriteToParameter.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instWriteToParameter.Done THEN
+	                        // Reset write request
+	                        #instWriteToParameter.Execute := FALSE;
+	                        // Memorize HW Limits have to be reactivated
+	                        #statHWLimitsDisabled := TRUE;
+	                        // Next step
+	                        #statNextStep := #S0040_DIS_SW_LIMITS;
+	                    END_IF;
+	                ELSE
+	                    // Next step
+	                    #statNextStep := #S0040_DIS_SW_LIMITS;
+	                END_IF;
+	                
+	            #S0040_DIS_SW_LIMITS: // Disable software limits            
+	                REGION DISABLE SW LIMITS
+	                    // Software
+	                    #tempRefPosAxis^.PositionLimits_SW.Active := FALSE;
+	                    // Next step
+	                    #statNextStep := #S0110_EN_TQ_LIMIT;
+	                END_REGION
+	                
+	            #S0110_EN_TQ_LIMIT://torque limiting
+	                REGION ENABLE TORQUE LIMIT  
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HFS_TQLIMITING_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    //enable torque limit
+	                    #instTorqueLimiting.Enable := TRUE;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instTorqueLimiting.Busy THEN
+	                        // Torque limiting active
+	                        #statStepTimeOut_IN := FALSE;
+	                        //Next Step
+	                        #statNextStep := #S0120_APPROACH;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // Torque limiting timeout
+	                        #statErrorID := "ERR_HFS_LIMITING_TIMEOUT";
+	                        #statNextStep := #S0900_ERR;
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            #S0120_APPROACH: // Move Axis
+	                REGION HOMING_FIXED_STOP                            
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HFS_MOVEVELOCITY_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Move axis
+	                    #instMoveVelocity.Execute := TRUE;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMoveVelocity.Busy
+	                        // AND (NOT #statAxisStatus.boStandstill)
+	                        // removed in case of standstill threshold > velocity setpoint
+	                    THEN
+	                        // Axis moving
+	                        #statStepTimeOut_IN := FALSE;
+	                        // Next Step
+	                        #statNextStep := #S0130_DETECT_CLAMPING;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted THEN
+	                        // MC_MoveVelocity aborted
+	                        #statNextStep := #S0910_ABORT;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // MC_MoveVelocity error
+	                        #statErrorID := "ERR_HFS_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // axis stalled (eg limit too low / already on fixed stop)
+	                        #statErrorID := "ERR_HFS_MOTOR_STALLED";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0130_DETECT_CLAMPING: // Waiting for Clamping state
+	                REGION CLAMPING
+	                    // Enable approach duration timeout
+	                    #statStepTimeOut_PT := #homingTimeout;
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMoveVelocity.Error THEN
+	                        // Error in Move_Velocity    
+	                        // Including Axis disabled (eg external MC_Power OFF, Fault in drive,...)
+	                        #statErrorID := "ERR_HFS_MC_MOVEVELOCITY";
+	                        #statSubErrorID := #instMoveVelocity.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMoveVelocity.CommandAborted AND NOT #instTorqueLimiting.InClamping THEN
+	                        // CLAMPING STATE ABORTS MOVE_VELOCITY !
+	                        // Move velocity aborted (eg external MC_HALT command)
+	                        #statNextStep := #S0910_ABORT;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // TimeOut Graph Step    
+	                        #statErrorID := "ERR_HFS_APPROACH_TIMEOUT";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instTorqueLimiting.InClamping THEN
+	                        // In clamping 
+	                        #statStepTimeOut_IN := FALSE;
+	                        // Next step
+	                        #statNextStep := #S0140_DELAY_CLAMPING;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0140_DELAY_CLAMPING:// Clamping delay
+	                REGION IN_CLAMPING
+	                    // Delay when in Clamping State
+	                    #statClampingDelay_IN := TRUE;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instClampingDelay.Q THEN
+	                        // In clamping for ClampingStateDelay time
+	                        // Reset timer
+	                        #statClampingDelay_IN := FALSE;
+	                        
+	                        // Next step
+	                        #statFixedStopReleased := FALSE;
+	                        #statNextStep := #S0150_RETRACT;
+	                    END_IF;
+	                    
+	                END_REGION
+	                
+	            #S0150_RETRACT://Retract value
+	                REGION RETRACTION                            
+	                    // Enable retraction timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HFS_RETRACT_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Retraction distance = - following error + RefPos offset
+	                    // do not consider clamping tolerance.
+	                    IF (#homingVelocity < 0) THEN
+	                        // Negative direction
+	                        #instMoveRelative.Distance := #homePositionOffset - #tempRefPosAxis^.StatusPositioning.FollowingError;
+	                    ELSE
+	                        // Positive direction
+	                        #instMoveRelative.Distance := #homePositionOffset - #tempRefPosAxis^.StatusPositioning.FollowingError;
+	                    END_IF;
+	                    
+	                    // Move Axis
+	                    #instMoveRelative.Execute := TRUE;
+	                    IF #instMoveRelative.Busy AND (#statHomingDirection * #tempRefPosAxis^.StatusPositioning.FollowingError < 0) THEN
+	                        // If MOVE_VELOCITY active and following error compensated
+	                        // Restore torque limit to reference torque = 100%
+	                        // this is for vertical axis with fixed stop downside
+	                        #instTorqueLimiting.Limit := #tempRefPosAxis^.Actor.DriveParameter.ReferenceTorque;
+	                        ;
+	                    END_IF;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // Move timeout
+	                        #statErrorID := "ERR_HFS_RETRACT";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMoveRelative.Error THEN
+	                        // Move error
+	                        // Including Axis disabled (eg externam MC_Power OFF, Fault in drive,...)
+	                        #statErrorID := "ERR_HFS_MC_RETRACT";
+	                        #statSubErrorID := #instMoveRelative.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF NOT (#instTorqueLimiting.InClamping AND #tempRefPosAxis^.StatusWord.%X30) THEN
+	                        // Fixed stop released
+	                        // Test both instruction and status word in case of a runaway event
+	                        #statFixedStopReleased := TRUE;
+	                        
+	                        IF #instMoveRelative.Done THEN
+	                            // Move done
+	                            #statStepTimeOut_IN := FALSE;
+	                            #instMoveRelative.Execute := FALSE;
+	                            // Next step
+	                            #statNextStep := #S0160_HOME;
+	                        END_IF;
+	                        
+	                    ELSIF #statFixedStopReleased THEN
+	                        // at that point #instTorqueLimiting.InClamping = TRUE and previously released
+	                        // Fixed stop not hard enough. "InClamping" state unstable
+	                        #statErrorID := "ERR_HFS_MC_FIXEDSTOP";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instMoveRelative.CommandAborted THEN
+	                        // Command aborted
+	                        #statNextStep := #S0910_ABORT;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0160_HOME: // Axis Homing
+	                REGION HOMING                           
+	                    // Enable homing command timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HFS_HOMING_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    // Define homing mode
+	                    IF (#tempRefPosAxis^.Sensor[#statOperativeSensor].Type = 1) OR
+	                        (#tempRefPosAxis^.Sensor[#statOperativeSensor].Type = 2) THEN
+	                        #instHome.Mode := 7; // Absolute encoder
+	                    ELSE
+	                        #instHome.Mode := 0; // Incremental encoder
+	                    END_IF;
+	                    
+	                    // Home axis
+	                    #instHome.Execute := TRUE;
+	                    
+	                    IF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instTorqueLimiting.InClamping OR #instTorqueLimiting.InLimitation THEN
+	                        // Fixed stop not hard enough. "InClamping" state unstable
+	                        #statErrorID := "ERR_HFS_MC_FIXEDSTOP";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // Homing timeout
+	                        #statErrorID := "ERR_HFS_HOMING_TIMEOUT";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instHome.CommandAborted THEN
+	                        // Homing aborted
+	                        #statNextStep := #S0910_ABORT;
+	                        
+	                    ELSIF #instHome.Error THEN
+	                        // Homing error
+	                        #statErrorID := "ERR_HFS_MC_HOME";
+	                        #statSubErrorID := #instHome.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #statAxisStatus.boHomed AND #instHome.Done THEN
+	                        // Homing done
+	                        #statStepTimeOut_IN := FALSE;
+	                        #instHome.Execute := FALSE;
+	                        #statNextStep := #S0170_DIS_TQ_LIMIT;
+	                        
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0170_DIS_TQ_LIMIT: //Disable Torque limit
+	                REGION DISABLE TORQUE LIMIT
+	                    // Step timeout
+	                    #statStepTimeOut_PT := "LAPCFR_HFS_TQLIMITING_TIMEOUT";
+	                    #statStepTimeOut_IN := TRUE;
+	                    
+	                    #instTorqueLimiting.Enable := FALSE;
+	                    
+	                    IF #instTorqueLimiting.InClamping THEN
+	                        // Fixed stop not hard enough. "InClamping" state unstable
+	                        #statErrorID := "ERR_HFS_MC_FIXEDSTOP";
+	                        #statNextStep := #S0900_ERR;
+	                    ELSIF #instTorqueLimiting.Error THEN
+	                        // Torque limiting error (to be checked while torque limiting is active
+	                        #statErrorID := "ERR_HFS_MC_TORQUELIMITING";
+	                        #statSubErrorID := #instTorqueLimiting.ErrorId;
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF #instStepTimeOut.Q THEN
+	                        // Torque limiting timeout
+	                        #statErrorID := "ERR_HFS_LIMITING_TIMEOUT";
+	                        #statNextStep := #S0900_ERR;
+	                        
+	                    ELSIF NOT #statAxisStatus.boTorqueLimitingActive THEN
+	                        // Next Step
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0210_EN_HW_LIMITS;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0210_EN_HW_LIMITS:  // Enable Hardware limits
+	                REGION ENABLE HW LIMITS
+	                    IF #statHWLimitsDisabled THEN
+	                        // HW Limits to be activated. 
+	                        // Initialize request
+	                        #statWriteTOParameterValue := TRUE;
+	                        #instWriteToParameter.Execute := TRUE;
+	                        
+	                        IF #instWriteToParameter.Error THEN
+	                            // Reset write request
+	                            #instWriteToParameter.Execute := FALSE;
+	                            #statErrorID := "ERR_HFS_HW_LIMITS";
+	                            #statSubErrorID := #instWriteToParameter.ErrorId;
+	                            #statNextStep := #S0900_ERR;
+	                            
+	                        ELSIF #instWriteToParameter.Done THEN
+	                            // Reset write request
+	                            #instWriteToParameter.Execute := FALSE;
+	                            // Reset memory HW Limits have to be reactivated
+	                            #statHWLimitsDisabled := FALSE;
+	                            // Next step
+	                            #statNextStep := #S0220_EN_SW_LIMITS;
+	                        END_IF;
+	                    ELSE
+	                        // Next step
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statNextStep := #S0220_EN_SW_LIMITS;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S0220_EN_SW_LIMITS: //Enable Software limits
+	                REGION ENABLE SW LIMITS                                                       
+	                    #tempRefPosAxis^.PositionLimits_SW.Active := #statAxisCfg.boSWLimit;
+	                    #statNextStep := #S0300_DONE;
+	                END_REGION
+	                
+	            #S0300_DONE://Function Ok
+	                REGION FUNCTION_DONE
+	                    #statDone := TRUE;
+	                END_REGION ;
+	                
+	            #S0900_ERR:  // Fault in sequence
+	                REGION FUNCTION_FAULTY 
+	                    // Check if end cause is technology alarm on TO
+	                    IF #statSubErrorID = 16#8001 THEN
+	                        #statTOAlarmNr := #tempRefPosAxis^.ErrorDetail.Number;
+	                    ELSE
+	                        #statTOAlarmNr := 0;
+	                    END_IF;
+	                    
+	                    // Next step
+	                    #statSequenceAborted := FALSE;
+	                    #statNextStep := #S1000_CANCELCLAMPING;
+	                END_REGION ;
+	                
+	            #S0910_ABORT: // CommandAborted
+	                REGION SEQUENCE ABORTED
+	                    #statSequenceAborted := TRUE;
+	                    #statNextStep := #S1000_CANCELCLAMPING;
+	                END_REGION
+	                
+	            #S1000_CANCELCLAMPING: // Cancel Clamping state + reset following error
+	                
+	                IF #statAxisStatus.boInClamping THEN
+	                    
+	                    REGION CANCEL_CLAMPING
+	                        // IN fact, when if "inClamping", the only solution to cancel clamping state is to retract the tempRefPosAxis^
+	                        // = move away from the clamping tolerance
+	                        // MC_STOP don't cancel "inClamping" ,  
+	                        // Even the "MC_TorqueLimiting" job cannot be deactivated in the "InClamping" state! --> error 16#8046
+	                        
+	                        (* First solution: move relative away - REMOVED BECAUSE THIS GENERATES SYSTEMATICALLY A FAULT THAT IS CONFUSING:
+	                           MC Alarm 542: S7-1500T axisname : Clamping monitoring error: Axis is leaving clamping tolerance window.
+	                        
+	                           // backup tolerance and reduce to the minimum
+	                           #StatClampingTolerance := tempRefPosAxis^.Clamping.PositionTolerance;
+	                           IF tempRefPosAxis^.Units.LengthUnit = 1536 OR tempRefPosAxis^.Units.LengthUnit = 1537 THEN
+	                             tempRefPosAxis^.Clamping.PositionTolerance := 0.000001;
+	                           ELSE
+	                             tempRefPosAxis^.Clamping.PositionTolerance := 0.001;
+	                           END_IF;
+	                           #instCancelClamping.Distance := 10 * tempRefPosAxis^.Clamping.PositionTolerance;
+	                           #instCancelClamping.Execute := TRUE;
+	                           IF #instCancelClamping.Done OR #instCancelClamping.Error OR #instCancelClamping.CommandAborted THEN
+	                             // Restore clamping position tolerance
+	                              tempRefPosAxis^.Clamping.PositionTolerance := #StatClampingTolerance;
+	                             #statNextStep := #S1010_CANCELCOMMAND;
+	                           END_IF;
+	                        *)
+	                        
+	                        IF #statAxisStatus.boHomed THEN
+	                            // When "inClamping" MC_STOP don't reset FE
+	                            // The only solution to reset FE is a move absolute to actual position.
+	                            // Other solution is Move relative with distance = -FE but not reliable because of Position regulation
+	                            // --> axis must be homed
+	                            
+	                            REGION RESET_FE
+	                                // reset followingError
+	                                #instCancelClamping.Position := #tempRefPosAxis^.ActualPosition;
+	                                #instCancelClamping.Execute := TRUE;
+	                                IF #instCancelClamping.Done OR #instCancelClamping.Error OR #instCancelClamping.CommandAborted THEN
+	                                    #statNextStep := #S1010_CANCELCOMMAND;
+	                                END_IF;
+	                            END_REGION
+	                        ELSE
+	                            // No solution to reset FE
+	                            #statNextStep := #S1010_CANCELCOMMAND;
+	                        END_IF;
+	                    END_REGION
+	                ELSE
+	                    // If not "inClamping" MC_Stop will reset following error
+	                    #instStop.Execute := TRUE;
+	                    #statNextStep := #S1010_CANCELCOMMAND;
+	                END_IF;
+	                
+	            #S1010_CANCELCOMMAND: // Cancel any running command
+	                REGION CANCEL_COMMAND
+	                    
+	                    // Cancel commands if any
+	                    IF #statAxisStatus.boRunningCommand AND NOT (#instStop.Done OR #instStop.Error OR #instStop.CommandAborted) THEN
+	                        // Stop Axis
+	                        #instStop.Execute := TRUE;
+	                        
+	                    ELSE
+	                        // Reset Timers
+	                        #statStepTimeOut_IN := FALSE;
+	                        #statClampingDelay_IN := FALSE;
+	                        
+	                        // Reset Commands
+	                        #instMoveVelocity.Execute := FALSE;
+	                        #instMoveRelative.Execute := FALSE;
+	                        #instHome.Execute := FALSE;
+	                        #instStop.Execute := FALSE;
+	                        #instCancelClamping.Execute := FALSE;
+	                        
+	                        // Reset torque limiting
+	                        #instTorqueLimiting.Enable := FALSE;
+	                        
+	                        // Next step
+	                        #statNextStep := #S1020_RESTORE_PREV_STATE;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S1020_RESTORE_PREV_STATE: // Whatever happened, try to restore state before sequence
+	                REGION RESTORE STATE
+	                    
+	                    // Restore SW limits configuration
+	                    #tempRefPosAxis^.PositionLimits_SW.Active := #statAxisCfg.boSWLimit;
+	                    
+	                    // Restore Hardware limits configuration
+	                    // Initialize request
+	                    #statWriteTOParameterValue := #statAxisCfg.boHWLimit;
+	                    #instWriteToParameter.Execute := #statHWLimitsDisabled;
+	                    
+	                    // No request or request ended
+	                    IF NOT #statHWLimitsDisabled
+	                        OR #instWriteToParameter.Error
+	                        OR #instWriteToParameter.Done
+	                        OR #instWriteToParameter.CommandAborted
+	                    THEN
+	                        // Reset write request
+	                        #instWriteToParameter.Execute := FALSE;
+	                        // Reset memory HW Limits have to be reactivated
+	                        #statHWLimitsDisabled := FALSE;
+	                        // Next step
+	                        #statNextStep := #S9999_ABNORMALEND;
+	                    END_IF;
+	                END_REGION
+	                
+	            #S9999_ABNORMALEND:   // Homing did not succeed
+	                IF #statSequenceAborted THEN
+	                    // Aborted
+	                    #statCommandAborted := TRUE;
+	                ELSE
+	                    // ended with fault
+	                    #statError := TRUE;
+	                END_IF;
+	                
+	        END_CASE;
+	        
+	        IF (#statNextStep = #S0900_ERR AND #statActualStep <> #S0900_ERR)
+	            OR (#statNextStep = #S0910_ABORT AND #statActualStep <> #S0910_ABORT) THEN
+	            // Store faulty step
+	            #statErrorValue := #statActualStep;
+	        END_IF;
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION ERROR_HANDLING
+	        
+	        //Error occured in request
+	        IF #statError
+	        THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly if not set in user program region
+	            // #statStatus := ...;
+	            // #statSubStatus := ...;
+	            //
+	            #status := #statErrorID;
+	            #subStatus := #statSubErrorID;
+	            #TOAlarmNr := #statTOAlarmNr;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            // Resquest aborted
+	        ELSIF #statCommandAborted
+	        THEN
+	            #statDone := FALSE;
+	            #statBusy := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_EXECUTION_ABORTED";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request finished
+	        ELSIF #statDone
+	        THEN
+	            #statBusy := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	        END_IF;
+	        
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #busy := #statBusy;
+	        #commandAborted := #statCommandAborted;
+	        #error := #statError;
+	    END_REGION
+	    //--------------------------------------------------------------------------
+	    
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

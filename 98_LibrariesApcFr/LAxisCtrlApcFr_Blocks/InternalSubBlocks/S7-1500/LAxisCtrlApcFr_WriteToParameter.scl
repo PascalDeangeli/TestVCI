@@ -1,0 +1,255 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_WriteToParameter"
+TITLE = LApcFr_WriteTOParameter
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : LApcFr
+VERSION : 1.0
+   VAR_INPUT 
+      TO {InstructionName := 'TO_Object'; LibVersion := '8.0'} : TO_Object;
+      write { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      restart { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      parameterValue : Variant;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+   END_VAR
+
+   VAR_IN_OUT 
+      TO_Parameter : Variant;
+   END_VAR
+
+   VAR 
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statWrBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statWrRequest { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statResetRequest { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statWrRetval { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      instReset {InstructionName := 'MC_RESET'; LibVersion := '8.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MC_RESET;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Sequence to write TOs parameters
+	  //                Check documentation to know if TO have to be restarted
+	  //                (=> restart input to be set)
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2018.01.01  ---   FGe     First version released
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===================================================================================================
+	END_REGION
+	
+	REGION INSTANCES
+	  //=========================================================================================
+	  // TODO: Insert here instances of MC instructions.
+	  // inputs / outputs to be set / used in main section
+	  //-----------------------------------------------------------------------------------------
+	  #statWrRetval := WRIT_DBL(REQ := #statWrRequest,
+	                            SRCBLK := #parameterValue,
+	                            BUSY => #statWrBusy,
+	                            DSTBLK => #TO_Parameter);
+	  
+	  #instReset(Axis    := #TO,
+	             Execute := #statResetRequest,
+	             Restart := #restart);
+	  //-----------------------------------------------------------------------------------------
+	END_REGION
+	
+	REGION CALL MANAGEMENT
+	  //Check if FB is triggered
+	  IF #write AND NOT #statExecuteOld
+	    // if FB should finish current job before new job can be started with rising edge of execute,
+	    // you must remove the first comment character on next line
+	    AND NOT #statBusy
+	  THEN
+	    REGION FB TRIG (FIRST CALL)
+	      //-----------------------------------------------------------------------------------
+	      //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	      //
+	      #statWrRequest := FALSE;
+	      #statResetRequest := FALSE;
+	      #subStatus := "ERR_NO_ERROR";
+	      #status := "ERR_NO_ERROR";
+	      //-----------------------------------------------------------------------------------
+	      
+	      //Functionality is busy
+	      #statDone := FALSE;
+	      #statBusy := TRUE;
+	      //Reset diagnostic
+	      #statError := FALSE;
+	      #statErrorID := "ERR_NO_ERROR";
+	      #statSubErrorID := "ERR_NO_ERROR";
+	      // Write outputs
+	      #done := #statDone;
+	      #busy := #statBusy;
+	      #error := #statError;
+	      #status := "STATUS_FIRST_CALL";
+	      #subStatus := #statSubErrorID;
+	      #statExecuteOld := #write;
+	      RETURN;
+	    END_REGION
+	    
+	    //FB is currently inactive
+	  ELSIF NOT #write AND NOT #statBusy AND NOT #statExecuteOld
+	  THEN
+	    REGION NO CALL
+	      //Outputs are reset with falling edge of enable input
+	      //Write outputs
+	      #done := #statDone;
+	      #busy := #statBusy;
+	      #error := #statError;
+	      #status := "STATUS_NO_CALL";
+	      #subStatus := "ERR_NO_ERROR";
+	      #statExecuteOld := #write;
+	      RETURN;
+	    END_REGION
+	    
+	    //FB is currently executed and not finished
+	  ELSIF #statBusy OR #write
+	  THEN
+	    REGION BUSY
+	      #statExecuteOld := #write OR #statBusy;
+	    END_REGION
+	    
+	    //FB finished job
+	  ELSE
+	    REGION LAST CALL
+	      //=========================================================================================
+	      //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	      //-----------------------------------------------------------------------------------
+	      #statWrRequest := FALSE;
+	      #statResetRequest := FALSE;
+	      //-----------------------------------------------------------------------------------
+	      #statDone := FALSE;
+	      #statBusy := FALSE;
+	      #statError := FALSE;
+	      #statErrorID := "ERR_NO_ERROR";
+	      #statSubErrorID := "ERR_NO_ERROR";
+	      #statExecuteOld := #write;
+	      RETURN;
+	    END_REGION
+	  END_IF;
+	END_REGION
+	
+	REGION USER PROGRAM
+	  //=========================================================================================
+	  //TODO: Add user program
+	  //-----------------------------------------------------------------------------------
+	  //Following values have to be set in user program:
+	  //  - statDone:     FB is finished with execution
+	  //  - statError:    Error happened in program
+	  //  - status:       Identifier for current error
+	  // 
+	  //Following values are not allowed to use in user program:
+	  //  - statBusy
+	  //  - busy, done and error
+	  //  
+	  //Attention:
+	  //  - Input parameters can be updated continously
+	  //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	  //      automatically
+	  //-----------------------------------------------------------------------------------
+	  
+	  IF NOT #statResetRequest THEN
+	    #statDone := FALSE;
+	    // Load (WRIT_DBL) and reset TO (MC_Reset, restart=true)
+	    IF #statWrRetval = 28672 THEN // w#16#7000
+	      #statWrRequest := TRUE;
+	      #statError := FALSE;
+	    ELSIF #statWrRetval = 28673 THEN //  w#16#7001
+	      #statWrRequest := TRUE;
+	      #statError := FALSE;
+	    ELSIF #statWrRetval = 28674 THEN // w#16#7002
+	      #statWrRequest := TRUE;
+	      #statError := FALSE;
+	    ELSIF #statWrRetval = 0 THEN // w#16#0000
+	      // Configuration load OK
+	      #statWrRequest := FALSE;
+	      #statError := FALSE;
+	      #statResetRequest := TRUE;
+	    ELSE
+	      // Configuration load error
+	      #statError := TRUE;
+	      #statErrorID := "ERR_WTP_CFG";
+	      #statSubErrorID := INT_TO_WORD(IN := #statWrRetval);
+	    END_IF;
+	  ELSE
+	    IF #instReset.Done THEN
+	      // TO resart OK
+	      #statResetRequest := FALSE;
+	      #statDone := TRUE;
+	      #statError := FALSE;
+	    ELSE
+	      IF #instReset.Error OR #instReset.CommandAborted THEN
+	        // TO restart error
+	        #statDone := FALSE;
+	        #statError := TRUE;
+	        #statErrorID := "ERR_WTP_RST";
+	        #statSubErrorID := #instReset.ErrorId;
+	      ELSE
+	        // TO restarting
+	        ;
+	      END_IF;
+	    END_IF;
+	  END_IF;
+	  //-----------------------------------------------------------------------------------
+	END_REGION
+	
+	REGION ERROR_HANDLING
+	  
+	  //Error occured in request
+	  IF #statError
+	  THEN
+	    #statDone := FALSE;
+	    #statBusy := FALSE;
+	    //-----------------------------------------------------------------------------------
+	    //TODO: Set correct status that identifies error clearly if not set in user program region
+	    // #statStatus := ...;
+	    // #statSubStatus := ...;
+	    //
+	    #status := #statErrorID;
+	    #subStatus := #statSubErrorID;
+	    //-----------------------------------------------------------------------------------
+	    
+	    //Request finished
+	  ELSIF #statDone
+	  THEN
+	    #statBusy := FALSE;
+	    #statError := FALSE;
+	    #status := "STATUS_FINISHED_NOERROR";
+	    #subStatus := "ERR_NO_ERROR";
+	    
+	    //Request in execution
+	  ELSE
+	    #status := "STATUS_SUBSEQUENT_CALL";
+	    #subStatus := "ERR_NO_ERROR";
+	  END_IF;
+	  
+	  //Write static values to outputs
+	  #done := #statDone;
+	  #busy := #statBusy;
+	  #error := #statError;
+	END_REGION
+	//-----------------------------------------------------------------------------------
+END_FUNCTION_BLOCK
+

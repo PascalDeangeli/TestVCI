@@ -1,0 +1,99 @@
+﻿FUNCTION_BLOCK "LKinMAxisCtrlApcFr_CmdMAxisFB"
+TITLE = LKinCtrl_MC_GroupPower
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : 'tech.team.motioncontrol@siemens.com'
+FAMILY : LKinCtrl
+VERSION : 1.1
+//FB provides funcitonalities to enable all axes (TO_PositioningAxis or TO_SynchronousAxis) interconnected with TO Kinematics
+   VAR_INPUT 
+      FirstCycle : Bool;   // TRUE: Enable axes; FALSE: Disable axes
+      EnableAxisFB : Bool;
+      StateSafetyActive : Bool := TRUE;
+      StateInfeedInOperation : Bool;
+      PowerAxisRobot { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // enable axis
+      ResetAxisRobot { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // reset axis
+      HomeAxisRobot { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Home axis
+      Data : "LKinMAxisCtrlApcFr_TypeDataParameters";
+   END_VAR
+
+   VAR_IN_OUT 
+      AxisFB_Interface : Array[1.."LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES"] of "LMAxisCtrlApcFr_TypeInterface";
+      axesGroup {InstructionName := 'TO_Kinematics'; LibVersion := '8.0'} : TO_Kinematics;   // reference to the axesGroup
+   END_VAR
+
+   VAR 
+      statAxes { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1..#MAX_NO_OF_AXES] of DB_ANY;   // array of struct containing axis DB_ANY and type of axis
+      statExsitingAxes { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1..#MAX_NO_OF_AXES] of Bool;   // static counter for existing axes
+      statAxisNumber { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1..#MAX_NO_OF_AXES] of UInt;   // static counter for existing axes
+   END_VAR
+
+   VAR_TEMP 
+      tempAxisRobot : Int;   // temporary counter variable for axes
+      tempAxisFB : UInt;
+      tempRefToAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // temporary reference to axis
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_NO_OF_AXES : Int := 6;   // maximum number of axes
+   END_VAR
+
+
+BEGIN
+	REGION INIT
+	    IF #FirstCycle THEN
+	        // check available & connected axes at TO_Kinematics
+	        // assign DB number of connected axis to DB_ANY type
+	        #statAxes[1] := #axesGroup.KinematicsAxis.A1;
+	        #statAxes[2] := #axesGroup.KinematicsAxis.A2;
+	        #statAxes[3] := #axesGroup.KinematicsAxis.A3;
+	        #statAxes[4] := #axesGroup.KinematicsAxis.A4;
+	        #statAxes[5] := #axesGroup.KinematicsAxis.A5;
+	        #statAxes[6] := #axesGroup.KinematicsAxis.A6;
+	        
+	        FOR #tempAxisRobot := 1 TO #MAX_NO_OF_AXES DO
+	            // Existing axes
+	            IF #statAxes[#tempAxisRobot] <> 0 THEN
+	                #statExsitingAxes[#tempAxisRobot] := TRUE;
+	            ELSE
+	                #statExsitingAxes[#tempAxisRobot] := FALSE;
+	            END_IF;
+	        END_FOR;
+	        
+	        FOR #tempAxisRobot := 1 TO #MAX_NO_OF_AXES DO
+	            // Check if axis is used
+	            IF #statExsitingAxes[#tempAxisRobot] THEN
+	                FOR #tempAxisFB := 1 TO "LMAXISCTRLAPCFR_MAX_NUMBER_OF_AXES" DO
+	                    // Check AXISFB Number
+	                    IF #statAxes[#tempAxisRobot] = #AxisFB_Interface[#tempAxisFB].In.axis THEN
+	                        #statAxisNumber[#tempAxisRobot] := #tempAxisFB;
+	                    END_IF;
+	                END_FOR;
+	            END_IF;
+	        END_FOR;
+	    END_IF;
+	END_REGION
+	
+	REGION MAIN
+	    FOR #tempAxisRobot := 1 TO #MAX_NO_OF_AXES DO
+	        // Check if axis is used
+	        IF #statExsitingAxes[#tempAxisRobot] THEN
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.enable := #EnableAxisFB;
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.stateSafetyActive := #StateSafetyActive;
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.stateS120InfeedInOperation := #StateInfeedInOperation;
+	            //EnableAxis
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.enableAxis := #PowerAxisRobot;
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.dataAxisConfig.power.startMode := #Data.Power.startMode[#tempAxisRobot];
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.dataAxisConfig.power.stopMode := #Data.Power.stopMode[#tempAxisRobot];
+	            //Reset
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.resetAxis := #ResetAxisRobot;
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.dataAxisConfig.generalSettings.resetWithRestart := #Data.Reset.Restart[#tempAxisRobot];
+	            //Homing
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.homing := #HomeAxisRobot;
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.dataAxisConfig.homing.mode := #Data.Home.mode[#tempAxisRobot];
+	            #AxisFB_Interface[#statAxisNumber[#tempAxisRobot]].In.dataAxisConfig.homing.position := #Data.Home.position[#tempAxisRobot];
+	        END_IF;
+	    END_FOR;
+	END_REGION
+	
+END_FUNCTION_BLOCK
+

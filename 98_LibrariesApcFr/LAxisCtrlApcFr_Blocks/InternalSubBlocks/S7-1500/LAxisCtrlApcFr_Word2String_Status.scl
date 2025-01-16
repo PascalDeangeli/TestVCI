@@ -1,0 +1,352 @@
+﻿FUNCTION "LAxisCtrlApcFr_Word2String_Status" : String
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      wordStatus : Word;
+   END_VAR
+
+
+BEGIN
+	// --------------------------------------------------------------------
+	// Error ID for Motion Control instructions : conversion word to string
+	// --------------------------------------------------------------------
+	
+	CASE #wordStatus OF
+	        
+	        // ------------------    
+	        // ----- STATUS -----
+	        // ------------------
+	        "STATUS_FINISHED_NOERROR":
+	            #LAxisCtrlApcFr_Word2String_Status := 'NO ERRROR';
+	        "STATUS_NO_CALL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'STATUS_NO_CALL';
+	        "STATUS_FIRST_CALL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'STATUS_FIRST_CALL';
+	        "STATUS_SUBSEQUENT_CALL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'STATUS_SUBSEQUENT_CALL';
+	        "STATUS_EXECUTION_ABORTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'STATUS_EXECUTION_ABORTED';
+	            
+	        "ERROR_INVALID_TECHNOLOGY_OBJECT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERROR_INVALID_TECHNOLOGY_OBJECT';
+	        
+	        // ---------------------------
+	        // ----- GEARINPOS ERROR -----
+	        // ---------------------------   
+	        "ERR_GIP_INVALIDTYPE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GIP INVALID TYPE';
+	        "ERR_GIPA_ABORTACCEL_M":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS ABORTACCEL MASTER';
+	        "ERR_GIPA_ABORTACCEL_S":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS ABORTACCELSLAVE';
+	        "ERR_GIPA_MOVEABS_M":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS MOVEABSOLUTE MASTER';
+	        "ERR_GIPA_MOVEABS_S":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS MOVEABSOLUTE SLAVE_ERR';
+	        "ERR_GIPA_HALT_M":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS HALT MASTER';
+	        "ERR_GIPA_HALT_S":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS HALT SLAVE';
+	        "ERR_GIPA_GEARINPOS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR GEARINPOS GEARINPOS';
+	        
+	        // -------------------------------
+	        // ----- SIMULATION ON ERROR -----
+	        // -------------------------------  
+	        "ERR_SON_AXIS_ENABLED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_SIMULATION_ON_OFF_AXIS_ENABLED';
+	        "ERR_SON_STATE_ALREADY_REQUESTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_SIMULATION_ON_OFF_STATE_ALREADY_REQUESTED';
+	        "ERR_SON_AXIS_VIRTUAL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_SIMULATION_ON_OFF_AXIS_VIRTUAL';
+	        "ERR_SON_WRITEPARAMETER_SIMULATION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_SIMULATION_ON_OFF_WRITEPARAMETER_SIMULATION';
+	        "ERR_SON_WRITEPARAMETER_TIMEOUT_SIMULATION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_SIMULATION_ON_OFF_WRITEPARAMETER_TIMEOUT_SIMULATION';
+	        
+	        // --------------------------------
+	        // ----- LAXISCTRLAPCFR ERROR -----
+	        // --------------------------------
+	        "ERR_LAXISCTRLAPCFR_TO_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_TO_AXIS';
+	        "ERR_LAXISCTRLAPCFR_LAXISCTRL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_LAXISCTRL';
+	        "ERR_LAXISCTRLAPCFR_HOMING_TO_FIXED_STOP":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_HOMING_TO_FIXED_STOP';
+	        "ERR_LAXISCTRLAPCFR_HOMING_ON_SENSOR":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_HOMING_ON_SENSOR';
+	        "ERR_LAXISCTRLAPCFR_POWERON_WITH_DRIVE_NO_READY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_POWERON_WITH_DRIVE_NO_READY';
+	        "ERR_LAXISCTRLAPCFR_ACT_LIMIT_SWITCHES":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_ACT_LIMIT_SWITCHES';
+	        "ERR_LAXISCTRLAPCFR_CHANGE_MODULO_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_CHANGE_MODULO_AXIS';
+	        "ERR_LAXISCTRLAPCFR_NOT_INFEED_IN_OPERATION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_NOT_INFEED_IN_OPERATION';
+	        "ERR_LAXISCTRLAPCFR_NO_DRIVE_AND_ENCODER_COMMUNICATION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_NO_DRIVE_AND_ENCODER_COMMUNICATION';
+	        "ERR_LAXISCTRLAPCFR_SAFETY_ACTIVATED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_SAFETY_ACTIVATED';
+	        "ERR_LAXISCTRLAPCFR_ESTOP":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_ESTOP';
+	        "ERR_LAXISCTRLAPCFR_ESTOP_IN_ERROR":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ESTOP_IN_ERROR';
+	        "ERR_LAXISCTRLAPCFR_ENDLESS_MODE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_ENDLESS_MODE';
+	        "ERR_LAXISCTRLAPCFR_CAMINSTANDSTILL":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_CAMINSTANDSTILL';
+	        "ERR_LAXISCTRLAPCFR_CAM_EMPTY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_CAM_EMPTY';
+	        "ERR_LAXISCTRLAPCFR_CHANGECAMONFLY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_CHANGECAMONFLY';
+	        "ERR_LAXISCTRLAPCFR_GEARINPOS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_GEARINPOS';
+	        "ERR_LAXISCTRLAPCFR_SIMULATION_ON":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_SIMULATION_ON';
+	        "ERR_LAXISCTRLAPCFR_CAMMANAGEMENT_CAM_NUMBER_SELECTION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMMANAGEMENT_ERR_CAM_NUMBER_SELECTION';
+	        "ERR_LAXISCTRLAPCFR_CAMMANAGEMENT_NO_CAM_ACTIVE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMMANAGEMENT_ERR_NO_CAM_ACTIVE';
+	        "ERR_LAXISCTRLAPCFR_CAM_SELECTION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_CAM_SELECTION';
+	        "ERR_LAXISCTRLAPCFR_INTERPOLATE_CAM":
+	            #LAxisCtrlApcFr_Word2String_Status := 'LAXISCTRLAPCFR_ERR_INTERPOLATE_CAM';
+	        "ERR_LAXISCTRLAPCFR_CAMMANAGEMENT_CAM_EMPTY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMMANAGEMENT_ERR_CAM_EMPTY';
+	        "ERR_LAXISCTRLAPCFR_CAMMANAGEMENT_INTERPOLATE_CAM":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMMANAGEMENT_ERR_INTERPOLATE_CAM';
+	        "ERR_LAXISCTRLAPCFR_CAMMANAGEMENT_CHANGECAMONFLY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMMANAGEMENT_ERR_CHANGECAMONFLY';
+	        
+	        // --------------------------------------
+	        // ----- HOMING TO FIXED STOP ERROR -----
+	        // --------------------------------------
+	        "ERR_HFS_APPROACH_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMING TO FIXED STOP APPOACH TIMEOUT';
+	        "ERR_HFS_POS_OFFSET_CHECK_SIGN_OR_VALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP HOME POS OFFSET CHECK SIGN OR VALUE';
+	        "ERR_HFS_HOMING_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP HOMING TIMEOUT';
+	        "ERR_HFS_HOMINGVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP HOMINGVELOCITY';
+	        "ERR_HFS_HW_LIMITS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP HW LIMITS';
+	        "ERR_HFS_LIMITING_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP LIMITING TIMEOUT';
+	        "ERR_HFS_MC_FIXEDSTOP":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC FIXEDSTOP';
+	        "ERR_HFS_MC_HOME":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC HOME';
+	        "ERR_HFS_MC_MOVEVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC MOVEVELOCITY';
+	        "ERR_HFS_MC_RETRACT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC RETRACT';
+	        "ERR_HFS_MC_TORQUE_LIMIT_ACTIVE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC TORQUE LIMIT ACTIVE';
+	        "ERR_HFS_MC_TORQUELIMITING":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MC TORQUELIMITING';
+	        "ERR_HFS_MOTOR_STALLED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP MOTOR STALLED';
+	        "ERR_HFS_NOTINPOSCTRL_MODE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP NOTINPOSCTRL MODE';
+	        "ERR_HFS_POWERON":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP POWERON';
+	        "ERR_HFS_RETRACT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP RETRACT';
+	        "ERR_HFS_RETURNVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP RETURNVELOCITY';
+	        "ERR_HFS_SIMULATED_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP SIMULATED AXIS';
+	        "ERR_HFS_STANDSTILLTHRESHOLD":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP STANDSTILLTHRESHOLD';
+	        "ERR_HFS_TORQUE_VALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP TORQUE_VALUE';
+	        "ERR_HFS_VIRTUAL_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGTOFIXEDSTOP VIRTUAL_AXIS';
+	        
+	        // --------------------------------
+	        // ----- HOMINGONSENSOR ERROR -----
+	        // --------------------------------
+	        "ERR_HOS_AXIS_DISABLED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR AXIS DISABLED';
+	        "ERR_HOS_COMMAND_ABORTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR COMMAND ABORTED';
+	        "ERR_HOS_HALT_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR HALT TIMEOUT';
+	        "ERR_HOS_HOMING_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR HOMING TIMEOUT';
+	        "ERR_HOS_HW_LIMITS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR HW LIMITS';
+	        "ERR_HOS_MC_HALT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MC HALT';
+	        "ERR_HOS_MC_HOME":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MC HOME';
+	        "ERR_HOS_MC_MOVERELATIVE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MC MOVERELATIVE';
+	        "ERR_HOS_MC_MOVEVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MC MOVEVELOCITY';
+	        "ERR_HOS_MC_MOVEVELOCITY_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MC MOVEVELOCITY TIMEOUT';
+	        "ERR_HOS_MOVERELATIVE_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR MOVERELATIVE TIMEOUT';
+	        "ERR_HOS_NOTINPOSCONTTRLROLED_MODE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR NOTINPOSCONTTRLROLED MODE';
+	        "ERR_HOS_RETURN_MC_MOVEVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR RETURN MC MOVEVELOCITY';
+	        "ERR_HOS_RETURN_MC_MOVEVELOCITY_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR RETURN MC MOVEVELOCITY TIMEOUT'; //SDA!!
+	        "ERR_HOS_RETURN_MOVEVELOCITY_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR RETURN_MOVEVELOCITY_TIMEOUT'; //SDA!!
+	        "ERR_HOS_SIMULATED_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR SIMULATED AXIS';
+	        "ERR_HOS_VELOCITY_SETPOINT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR VELOCITY SETPOINT';
+	        "ERR_HOS_VIRTUAL_AXIS":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR VIRTUAL AXIS';
+	        "ERR_HOS_WAITING_SENSOR_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR HOMINGONSENSOR WAITING SENSOR TIMEOUT';
+	        
+	        // ----------------------------------------
+	        // ----- ACTDESACTLIMITSWITCHES ERROR -----
+	        // ----------------------------------------
+	        "ERR_ADLS_SOFTLIMIT_INF_>=_LIMIT_SUP":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITHES SOFT LIMIT_INF >= LIMIT_SUP';
+	        "ERR_ADLS_WRITEPARAMETER":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITCHES MC_WRITEPARAMETER';
+	        "ERR_ADLS_WRITEPARAMETER_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITCHES MC_WRITEPARAMETER TIMEOUT';
+	        "ERR_ADLS_COMMAND_ABORTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITCHES COMMAND ABORTED';
+	        "ERR_ADLS_SOFTLIMIT_VALUE_NOT_IN_MODULO_RANGE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITCHES SOFT LIMIT VALUE NOT IN MODULO RANGE';
+	        "ERR_ADLS_HARDLIMIT_NO_INPUT_DEFINED_IN_TO":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ACTDESACTLIMITSWITCHES HARDLIMIT NO INPUT DEFINED IN TO';
+	        
+	        // ----------------------------------
+	        // ----- CHANGEMODULOAXIS ERROR -----
+	        // ----------------------------------
+	        "ERR_CM_AXIS_ENABLED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULOAXIS AXIS ENABLED';
+	        "ERR_CM_MODULO_NOT_ACTIVATED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULOAXIS MODULO NOT ACTIVATED';
+	        "ERR_CM_WRITEPARAMETER_LENGTHVALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULO WRITEPARAMETER LENGTHVALUE';
+	        "ERR_CM_WRITEPARAMETER_TIMEOUT_LENGTHVALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULO WRITEPARAMETER TIMEOUT LENGTHVALUE';
+	        "ERR_CM_LENGTH_VALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULOAXIS LENGTH VALUE';
+	        "ERR_CM_WRITEPARAMETER_STARTVALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR CHANGEMODULO WRITEPARAMETER STARTVALUE';
+	        
+	        // ---------------------------------
+	        // ----- CAMINSTANDSTILL ERROR -----
+	        // ---------------------------------
+	        "ERR_CIS_AXIS_IN_ERROR":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_AXIS_IN_ERROR';
+	        "ERR_CIS_GETCAMFOLLOWINGVALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_GETCAMFOLLOWINGVALUE';
+	        "ERR_CIS_VELOCITY_AT_ZERO":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_VELOCITY_AT_ZERO';
+	        "ERR_CIS_ACCELERATION_OR_DECELERATION_AT_ZERO":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_ACCELERATION_OR_DECELERATION_AT_ZERO';
+	        "ERR_CIS_CAMIN":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_CAMIN';
+	        "ERR_CIS_TIMEOUT_POSITIONING":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_TIMEOUT_POSITIONING';
+	        "ERR_CIS_TIMEOUT_SYNCHRONIZING":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_TIMEOUT_SYNCHRONIZING';
+	        "ERR_CIS_INTERPOLATE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_INTERPOLATE';
+	        "ERR_CIS_CAM_EMPTY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_CAM_EMPTY';
+	        "ERR_CIS_JERK_AT_ZERO":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_JERK_AT_ZERO';
+	        "ERR_CIS_TOLERANCE_AT_ZERO_OR_NEGATIVE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_TOLERANCE_AT_ZERO_OR_NEGATIVE';
+	        "ERR_CIS_TOLERANCE_TIME_POSITIONING_AT_ZERO":
+	            #LAxisCtrlApcFr_Word2String_Status := 'CAMINSTANDSTILL_ERR_TOLERANCE_TIME_POSITIONING_AT_ZERO';
+	        
+	        // ------------------------------
+	        // ----- ENDLESS MODE ERROR -----
+	        // ------------------------------
+	        "ERR_ELM_MC_NOT_IN_POSCONTROLED_MODE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE NOT IN POSCONTROLED MODE';
+	        "ERR_ELM_ERR_AXIS_DISABLED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE AXIS DISABLED';
+	        "ERR_ELM_MC_MOVEVELOCITY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MC_MOVEVELOCITY';
+	        "ERR_ELM_MC_MOVEVELOCITY_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MC_MOVEVELOCITY TIMEOUT';
+	        "ERR_ELM_MC_MOVEABSOLUTE_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MC_MOVEABSOLUTE TIMEOUT';
+	        "ERR_ELM_MOVE_VELOCITY_ABORTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MOVE_VELOCITY ABORTED';
+	        "ERR_ELM_MC_MOVEABSOLUTE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MC_MOVEABSOLUTE';
+	        "ERR_ELM_AXIS_NOT_HOMED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE AXIS NOT HOMED';
+	        "ERR_ELM_MODULO_POSITIONSTOP_VALUE":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE MODULO POSITIONSTOP VALUE';
+	        "ERR_ELM_POSITIONING_DIRECTION":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE POSITIONING DIRECTION';
+	        "ERR_ELM_COMMAND_ABORTED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR ENDLESSMODE COMMAND ABORTED';
+	        
+	        // ---------------------------------------
+	        // ----- CHANGE CAM ON THE FLY ERROR -----
+	        // ---------------------------------------
+	        "ERR_CCOF_AXIS_IN_ERROR":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_AXIS_IN_ERROR';
+	        "ERR_CCOF_GETOFFSET":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_GETOFFSET';
+	        "ERR_CCOF_CAMIN":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_CAMIN';
+	        "ERR_CCOF_INTERPOLATE_CAM1":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_INTERPOLATION_CAM1';
+	        "ERR_CCOF_INTERPOLATE_CAM2":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_INTERPOLATION_CAM2';
+	        "ERR_CCOF_DISTANCE_SYNC":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_DISTANCE_SYNCHRONISATION';
+	        "ERR_CCOF_MODE_SYNC":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGEONTHEFLY_MODE_SYNCHRONISATION';
+	        "ERR_CCOF_CAM1_AND_CAM2_USED":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_CAM1_AND_CAM2_USED';
+	        "ERR_CCOF_CAM1_EMPTY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_CAM1_EMPTY';
+	        "ERR_CCOF_CAM2_EMPTY":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_CAM2_EMPTY';
+	        "ERR_CCOF_GETFOLLOWINGVALUE_CAM1":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_GETFOLLOWINGVALUE_CAM1';
+	        "ERR_CCOF_GETFOLLOWINGVALUE_CAM2":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_GETFOLLOWINGVALUE_CAM2';
+	        "ERR_CCOF_INTERPOLATE_CAM1_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_INTERPOLATE_CAM1_TIMEOUT';
+	        "ERR_CCOF_INTERPOLATE_CAM2_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_INTERPOLATE_CAM2_TIMEOUT';
+	        "ERR_CCOF_GET_OFFSET_CAM_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_GET_OFFSET_CAM_TIMEOUT"';
+	        "ERR_CCOF_CAMIN_TIMEOUT":
+	            #LAxisCtrlApcFr_Word2String_Status := 'ERR_CAMINCHANGECAMONTHEFLY_CAMIN_TIMEOUT';
+	        
+	        // ------------------------------
+	        // ----- WRITE TO PARAMETER -----
+	        // ------------------------------
+	        "ERR_WTP_RST":
+	            #LAxisCtrlApcFr_Word2String_Status := 'WRITETOPARAMETER ERR RESET';
+	        "ERR_WTP_CFG":
+	            #LAxisCtrlApcFr_Word2String_Status := 'WRITETOPARAMETER ERR CONFIG';
+	            
+	            
+	        ELSE  // Statement section ELSE
+	            #LAxisCtrlApcFr_Word2String_Status := 'Unspecified error';
+	
+	END_CASE;
+	
+	  
+	
+	
+	
+	
+	
+END_FUNCTION
+

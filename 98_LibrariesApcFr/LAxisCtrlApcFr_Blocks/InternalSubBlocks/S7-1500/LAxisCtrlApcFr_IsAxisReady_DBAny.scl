@@ -1,0 +1,160 @@
+﻿FUNCTION "LAxisCtrlApcFr_IsAxisReady_DBAny" : Void
+TITLE = LApcFr_IsAxisReady
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : FGe
+FAMILY : LApcFr
+VERSION : 1.0
+   VAR_INPUT 
+      axis : DB_ANY;   //  Axis technology object
+      "S120 Infeed in Operation" : Bool;   // (For booksize drive) TRUE: infeed in operation
+      "STO or SOS active" : Bool;   // FALSE: both STO and SOS signal are TRUE (no active stop request)
+   END_VAR
+
+   VAR_OUTPUT 
+      dataValid : Bool;   // TRUE: outputs valid. Otherwise wrong axis datatype
+      axisReady : Bool;   // Axis ready
+      driveInOperation : Bool;   // TRUE: Drive is running
+      restartInProgress : Bool;   // TO Restarting
+      inSimulation : Bool;   // TRUE: Axis is in simulation
+      encoderValid : Bool;   // TRUE: Encoder value is valid
+      communicationOk : Bool;   // TRUE: Communication with drive is established
+   END_VAR
+
+   VAR_TEMP 
+      tempRefSpeedAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_SpeedAxis
+      tempRefPosAxis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : REF_TO TO_PositioningAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+      tempPosControledAxis : Bool;
+      tempAxisReady : Bool;
+      tempRestarting : Bool;
+      tempInSimulation : Bool;
+      tempDriveInOperation : Bool;
+      tempOperativeSensor : UInt;   //  Temp value for operative sensor
+      tempCommunicationOk : Bool;
+      tempEncoderValid : Bool;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Check conditions for axis to be operated
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2021.04.23  ---   FGe     Initial bloc Spitted to sub depending on TO type
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 2.8 and Motion Control V5.0 for TIA V16
+	  //===========================================================================================
+	END_REGION
+	
+	REGION INITIALISATION
+	    #tempRefSpeedAxis ?= #axis;
+	    #tempRefPosAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefSpeedAxis <> NULL) THEN
+	    // #axis type is TO_SpeedAxis OR TO_PositioningAxis OR TO_SynchronousAxis
+	    IF (#tempRefPosAxis <> NULL) THEN
+	        // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	        REGION INITIALISATION POSITIONING OR SYNCHRONOUS AXIS
+	            // axis actual contol mode (Position / speed)
+	            #tempPosControledAxis := #tempRefPosAxis^.StatusWord.%X28;
+	        END_REGION
+	        
+	        REGION PROCESSING POSITIONING OR SYNCHRONOUS AXIS
+	            IF NOT #tempPosControledAxis THEN
+	                // Check for speed controlled axis
+	                IF #tempRefPosAxis^.StatusWord.%X2 THEN
+	                    #tempRestarting := TRUE;
+	                ELSE
+	                    #tempRestarting := FALSE;
+	                    #tempInSimulation := (#tempRefPosAxis^.Simulation.Mode = 1);
+	                    #tempDriveInOperation := #tempRefPosAxis^.StatusDrive.InOperation;
+	                    #tempEncoderValid := FALSE;
+	                    #tempCommunicationOk := #tempRefPosAxis^.StatusDrive.CommunicationOK;
+	                END_IF;
+	            ELSE
+	                // Check position controlled axis
+	                IF #tempRefPosAxis^.StatusWord.%X2 THEN
+	                    #tempRestarting := TRUE;
+	                ELSE
+	                    #tempRestarting := FALSE;
+	                    #tempInSimulation := (#tempRefPosAxis^.Simulation.Mode = 1);
+	                    #tempDriveInOperation := #tempRefPosAxis^.StatusDrive.InOperation;
+	                    #tempOperativeSensor := UDINT_TO_UINT(IN := #tempRefPosAxis^.OperativeSensor);
+	                    IF #tempOperativeSensor > 0 AND #tempOperativeSensor < 5 THEN
+	                        // Status of actual encoder value
+	                        // 0: "NOT_VALID" (NOT valid)
+	                        // 1: "WAITING_FOR_VALID" (waiting FOR valid status)
+	                        // 2: "valid" (valid)
+	                        #tempEncoderValid := (#tempRefPosAxis^.StatusSensor[#tempOperativeSensor].State = 2);
+	                        IF #tempEncoderValid THEN
+	                            #tempCommunicationOk := #tempRefPosAxis^.StatusDrive.CommunicationOK
+	                            AND #tempRefPosAxis^.StatusSensor[#tempOperativeSensor].CommunicationOK;
+	                        ELSE
+	                            #tempCommunicationOk := FALSE;
+	                        END_IF;
+	                    ELSE
+	                        #tempEncoderValid := FALSE;
+	                        #tempCommunicationOk := FALSE;
+	                    END_IF;
+	                END_IF;
+	            END_IF;
+	            
+	            IF #tempRestarting THEN
+	                #tempAxisReady := FALSE;
+	            ELSE
+	                #tempAxisReady := #tempCommunicationOk AND (NOT #tempPosControledAxis OR #tempEncoderValid) AND #"S120 Infeed in Operation" AND NOT #"STO or SOS active";
+	            END_IF;
+	        END_REGION
+	    ELSE
+	        // Axis type is TO_SpeedAxis
+	        REGION PROCESSING SPEED AXIS
+	            // Check for speed controlled axis
+	            IF #tempRefSpeedAxis^.StatusWord.%X2 THEN
+	                #tempRestarting := TRUE;
+	            ELSE
+	                #tempRestarting := FALSE;
+	                #tempInSimulation := (#tempRefSpeedAxis^.Simulation.Mode = 1);
+	                #tempDriveInOperation := #tempRefSpeedAxis^.StatusDrive.InOperation;
+	                #tempEncoderValid := FALSE;
+	                #tempCommunicationOk := #tempRefSpeedAxis^.StatusDrive.CommunicationOK;
+	            END_IF;
+	            
+	            IF #tempRestarting THEN
+	                #tempAxisReady := FALSE;
+	            ELSE
+	                #tempAxisReady := #tempCommunicationOk AND #"S120 Infeed in Operation" AND NOT #"STO or SOS active";
+	            END_IF;
+	        END_REGION
+	    END_IF;
+	    
+	    REGION OUTPUTS
+	        #axisReady := #tempAxisReady;
+	        #restartInProgress := #tempRestarting;
+	        #driveInOperation := #tempDriveInOperation;
+	        #inSimulation := #tempInSimulation;
+	        #encoderValid := #tempEncoderValid;
+	        #communicationOk := #tempCommunicationOk;
+	        #dataValid := TRUE;
+	    END_REGION
+	    
+	ELSE
+	    // Invalid TO specification
+	    #dataValid := FALSE;
+	    #restartInProgress := FALSE;
+	    #inSimulation := FALSE;
+	    #driveInOperation := FALSE;
+	    #encoderValid := FALSE;
+	    #communicationOk := FALSE;
+	    #axisReady := FALSE;
+	END_IF;
+	
+END_FUNCTION
+

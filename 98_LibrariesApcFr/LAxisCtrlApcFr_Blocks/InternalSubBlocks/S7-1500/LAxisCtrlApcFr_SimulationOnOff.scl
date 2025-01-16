@@ -1,0 +1,370 @@
+﻿FUNCTION_BLOCK "LAxisCtrlApcFr_SimulationOnOff"
+TITLE = Execute Template
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : SDA
+FAMILY : APCFR
+VERSION : 1.0
+//Template for an FB with Execute / Busy / Done Handling according to PLC Open "Function Blocks for Motion Control"
+   VAR_INPUT 
+      execute { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge starts action once
+      simulationOnOff { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UDInt;   // 0:= swith to REAL ; 1:= switch to SIMULATION
+      axis { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DB_ANY;
+   END_VAR
+
+   VAR_OUTPUT 
+      done { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: Commanded action has been completed successfully
+      busy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // TRUE: FB is not finished and new output values can be expected
+      commandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      error { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Rising edge informs that an error occurred during the execution of
+      status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_NO_CALL";   // Current status of FB
+      subStatus { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word := "STATUS_FINISHED_NOERROR";
+      errorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := 0;
+   END_VAR
+
+   VAR 
+      statExecuteOld { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Old value of execute for edge detection
+      statDone { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output done
+      statBusy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output busy
+      statCommandAborted { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statError { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;   // Static value for output error
+      statErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statSubErrorID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      statErrorValue { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statActualStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      statNextStep { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      InstLapcFr_WriteToParameterR_Simulation { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "LAxisCtrlApcFr_WriteToParameter";
+      statStepTimeOut_IN { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      statStepTimeOut_PT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time;
+      instStepTimeOut {InstructionName := 'TON_TIME'; LibVersion := '1.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : TON_TIME;
+   END_VAR
+
+   VAR_TEMP 
+      tempRefSpeedAxis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : REF_TO TO_SpeedAxis;   // Temporary reference of the technology object type TO_PositioningAxis
+   END_VAR
+
+   VAR CONSTANT 
+      WRITE_TOPARAMETER_TIMEOUT : Time := T#5s;
+   END_VAR
+
+
+BEGIN
+	REGION HEADER
+	  //===================================================================================================
+	  // SIEMENS SAS    RC-FR DI FA APC
+	  //---------------------------------------------------------------------------------------------------
+	  // Restrictions:  ---
+	  // Requirements:  ---
+	  //---------------------------------------------------------------------------------------------------
+	  // Description:   Changing modulo value of axis
+	  //---------------------------------------------------------------------------------------------------
+	  // Change log table:
+	  // Version  Date        TIA   Expert  Changes applied
+	  // 01.00    2024.11.29  V19   PdA     First released version 
+	  //---------------------------------------------------------------------------------------------------
+	  // Compatibility to TIA version require the use of latest version for PLC fimware and Motion Control 
+	  // e.g; Firmware 3.1 and Motion Control V8.0 for TIA V19
+	  //===========================================================================================
+	END_REGION
+	
+	REGION INITIALISATION
+	    #tempRefSpeedAxis ?= #axis;
+	END_REGION
+	
+	IF (#tempRefSpeedAxis <> NULL) THEN
+	    // Axis type is TO_PositioningAxis or TO_SynchronousAxis
+	    
+	    REGION INSTANCES
+	        //------------------------------------------------------------------------------------------
+	        // TODO: Insert here instances of MC instructions.
+	        // inputs / outputs to be set / used in main section
+	        
+	        #instStepTimeOut(IN := #statStepTimeOut_IN,
+	                         PT := #statStepTimeOut_PT);
+	        
+	        #InstLapcFr_WriteToParameterR_Simulation("TO" := #tempRefSpeedAxis^,
+	                                                   restart := TRUE,
+	                                                   parameterValue := #simulationOnOff,
+	                                                   TO_Parameter := #tempRefSpeedAxis^.Simulation.Mode);
+	        
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION CALL HANDLING
+	        
+	        //Check if FB is triggered
+	        IF #execute AND NOT #statExecuteOld
+	            // if FB should finish current job before new job can be started with rising edge of execute,
+	            // you must remove the first comment character on next line
+	            AND NOT #statBusy
+	        THEN
+	            REGION FB TRIG (FIRST CALL)
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Commands
+	                #InstLapcFr_WriteToParameterR_Simulation.write := FALSE;
+	                // Status
+	                #statNextStep := 10;
+	                #statErrorID := "STATUS_FIRST_CALL";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                //-----------------------------------------------------------------------------------
+	                
+	                //Functionality is busy
+	                #statDone := FALSE;
+	                #statBusy := TRUE;
+	                #statCommandAborted := FALSE;
+	                //Reset diagnostic
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statErrorValue := 0;
+	                // Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_FIRST_CALL";
+	                #subStatus := #statSubErrorID;
+	                #errorValue := #statErrorValue;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently inactive
+	        ELSIF NOT #execute AND NOT #statBusy AND NOT #statExecuteOld
+	        THEN
+	            REGION NO CALL
+	                //Outputs are reset with falling edge of enable input
+	                //Write outputs
+	                #done := #statDone;
+	                #busy := #statBusy;
+	                #commandAborted := #statCommandAborted;
+	                #error := #statError;
+	                #status := "STATUS_NO_CALL";
+	                #subStatus := "ERR_NO_ERROR";
+	                #errorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	            //FB is currently executed and not finished
+	        ELSIF #statBusy OR #execute
+	        THEN
+	            REGION BUSY
+	                #statExecuteOld := #execute OR #statBusy;
+	            END_REGION
+	            
+	            //FB finished job
+	        ELSE
+	            REGION LAST CALL
+	                //-----------------------------------------------------------------------------------
+	                //TODO: Initialize functionality after triggering FB, e.g. reset of values
+	                //
+	                // Timers
+	                #statStepTimeOut_IN := FALSE;
+	                // Commands
+	                #InstLapcFr_WriteToParameterR_Simulation.write := FALSE;
+	                // State
+	                #statNextStep := 0;
+	                //-----------------------------------------------------------------------------------
+	                #statDone := FALSE;
+	                #statBusy := FALSE;
+	                #statCommandAborted := FALSE;
+	                #statError := FALSE;
+	                #statErrorID := "ERR_NO_ERROR";
+	                #statSubErrorID := "ERR_NO_ERROR";
+	                #statErrorValue := 0;
+	                #statExecuteOld := #execute;
+	                RETURN;
+	            END_REGION
+	            
+	        END_IF;
+	    END_REGION ;
+	    
+	    REGION USER PROGRAM
+	        //-----------------------------------------------------------------------------------
+	        //TODO: Add user program
+	        //
+	        //Following values have to be set in user program:
+	        //  - statDone:     FB is finished with execution
+	        //  - statAborted   Execution is aborted by an external command
+	        //  - statError:    Error happened in program
+	        //  - statStatus:   Identifier for current error
+	        //  - statSubStatus:Identifier for subcall error
+	        // 
+	        //Following values are not allowed to use in user program:
+	        //  - statBusy
+	        //  - status, subStatus, aborted, busy, done and error
+	        //  
+	        //Attention:
+	        //  - Input parameters can be updated continously
+	        //  - If inputs exceed application limits, system has either to throw an error or to correct it 
+	        //      automatically
+	        //-----------------------------------------------------------------------------------
+	        
+	        REGION CHANGE MODULO VALUES
+	            
+	            // update running step
+	            #statActualStep := #statNextStep;
+	            CASE #statActualStep OF
+	                    
+	                10: // Init values
+	                    REGION INITIALISATION                            
+	                        // Next step
+	                        #statNextStep := 20;
+	                    END_REGION
+	                    
+	                20: // Check change modulo conditions
+	                    REGION CHECK CONDITIONS
+	                        IF ((#tempRefSpeedAxis^.StatusWord.%X25) AND (#simulationOnOff <> 0))
+	                            OR ((NOT #tempRefSpeedAxis^.StatusWord.%X25) AND (#simulationOnOff = 0)) THEN
+	                            // already in state requested
+	                            // #statErrorID := "ERR_SON_STATE_ALREADY_REQUESTED";
+	                            #statNextStep := 120;
+	                            
+	                        ELSIF (#tempRefSpeedAxis^.VirtualAxis.Mode = 1) THEN
+	                            // virtual axis  
+	                            #statErrorID := "ERR_SON_AXIS_VIRTUAL";
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #tempRefSpeedAxis^.StatusWord.%X0 THEN
+	                            // axis enabled 
+	                            #statErrorID := "ERR_SON_AXIS_ENABLED";
+	                            #statNextStep := 900;
+	                            
+	                        ELSE
+	                            // Next step
+	                            #statNextStep := 30;
+	                        END_IF;
+	                    END_REGION
+	                    
+	                30: // change simulation value
+	                    REGION CHANGE SIMULATION VALUE 
+	                        // Step timeout
+	                        #statStepTimeOut_PT := #WRITE_TOPARAMETER_TIMEOUT;
+	                        #statStepTimeOut_IN := true;
+	                        
+	                        #InstLapcFr_WriteToParameterR_Simulation.write := TRUE;
+	                        
+	                        IF #InstLapcFr_WriteToParameterR_Simulation.error THEN
+	                            #statErrorID := "ERR_SON_WRITEPARAMETER_SIMULATION";
+	                            #statSubErrorID := #InstLapcFr_WriteToParameterR_Simulation.status;
+	                            #InstLapcFr_WriteToParameterR_Simulation.write := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 900;
+	                            
+	                        ELSIF #InstLapcFr_WriteToParameterR_Simulation.done THEN
+	                            #InstLapcFr_WriteToParameterR_Simulation.write := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            // Next step
+	                            #statNextStep := 120;
+	                            
+	                        ELSIF #instStepTimeOut.Q THEN
+	                            // write parameter timeout
+	                            #statErrorID := "ERR_SON_WRITEPARAMETER_TIMEOUT_SIMULATION";
+	                            #InstLapcFr_WriteToParameterR_Simulation.write := FALSE;
+	                            #statStepTimeOut_IN := FALSE;
+	                            #statNextStep := 900;
+	                        END_IF;
+	                        
+	                    END_REGION
+	                    
+	                120://Function Ok
+	                    REGION FUNCTION_DONE
+	                        #statDone := TRUE;
+	                    END_REGION ;
+	                    
+	                900:  //Fault handling
+	                    REGION FUNCTION_FAULTY 
+	                        #statNextStep := 910;
+	                    END_REGION
+	                    
+	                910:   // change modulo values ended with fault
+	                    #statError := TRUE;
+	                    
+	            END_CASE;
+	            
+	            IF #statNextStep = 900 AND #statActualStep <> 900 THEN
+	                // Store faulty step
+	                #statErrorValue := #statActualStep;
+	            END_IF;
+	            
+	        END_REGION
+	        
+	        //
+	        //-----------------------------------------------------------------------------------
+	    END_REGION
+	    
+	    REGION ERROR_HANDLING
+	        
+	        //Error occured in request
+	        IF #statError
+	        THEN
+	            #statDone := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statBusy := FALSE;
+	            //-----------------------------------------------------------------------------------
+	            //TODO: Set correct status that identifies error clearly if not set in user program region
+	            // #statStatus := ...;
+	            // #statSubStatus := ...;
+	            //
+	            #status := #statErrorID;
+	            #subStatus := #statSubErrorID;
+	            #errorValue := #statErrorValue;
+	            //-----------------------------------------------------------------------------------
+	            
+	            // Resquest aborted
+	        ELSIF #statCommandAborted
+	        THEN
+	            #statDone := FALSE;
+	            #statBusy := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_EXECUTION_ABORTED";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request finished
+	        ELSIF #statDone
+	        THEN
+	            #statBusy := FALSE;
+	            #statCommandAborted := FALSE;
+	            #statError := FALSE;
+	            #status := "STATUS_FINISHED_NOERROR";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	            
+	            //Request in execution
+	        ELSE
+	            #status := "STATUS_SUBSEQUENT_CALL";
+	            #subStatus := "ERR_NO_ERROR";
+	            #errorValue := 0;
+	        END_IF;
+	        
+	        //Write static values to outputs
+	        #done := #statDone;
+	        #busy := #statBusy;
+	        #commandAborted := #statCommandAborted;
+	        #error := #statError;
+	    END_REGION
+	    //-----------------------------------------------------------------------------------
+	    
+	ELSE
+	    IF #execute THEN
+	        // Invalid TO specification
+	        #error := TRUE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERROR_INVALID_TECHNOLOGY_OBJECT"; // Invalid TO specification
+	        #subStatus := "ERR_NO_ERROR";
+	    ELSE
+	        #error := FALSE;
+	        #done := FALSE;
+	        #busy := FALSE;
+	        #status := "ERR_NO_ERROR";
+	        #subStatus := "ERR_NO_ERROR";
+	    END_IF;
+	END_IF;
+END_FUNCTION_BLOCK
+

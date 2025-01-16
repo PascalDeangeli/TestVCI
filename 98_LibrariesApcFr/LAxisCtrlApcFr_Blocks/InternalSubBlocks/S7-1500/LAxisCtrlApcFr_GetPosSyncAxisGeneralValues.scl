@@ -1,0 +1,80 @@
+﻿FUNCTION "LAxisCtrlApcFr_GetPosSyncAxisGeneralValues" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      axis {InstructionName := 'TO_PositioningAxis'; LibVersion := '8.0'} : TO_PositioningAxis;
+   END_VAR
+
+   VAR_IN_OUT 
+      axisGeneral : "LAxisCtrlApcFr_typeAxisGeneral";
+   END_VAR
+
+   VAR_TEMP 
+      tempLoopIndex : Int;   // Temp loop index variable
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_ENCODER_COUNT : Int := 4;   // Count of encoder
+      AXIS_INCREMENTAL_ENCODER : Int := 1;   // Internal identifier of axis with incremental encoder
+      ENCODER_INCREMENTAL : Int := 2;   // Internal identifier of external encoder (incremental)
+      AXIS_OR_ENCODER_ABSOLUTE : Int := 3;   // Internal identifier of axis with absolute encoder or external encoder (absolute)
+      SPEED_AXIS : Int := 1;   // Internal identifier of speed axis (variable axisType)
+      POS_SYNC_AXIS : Int := 2;   // Internal identifier of positioning or synchronous axis (variable axisType)
+      EXTERNAL_ENCODER : Int := 3;   // Internal identifier of external encoder (variable axisType)
+      MOTOR_SIDE : Int := 0;   // Torque (force) limiting on motor side
+      LOAD_SIDE : Int := 1;   // Torque (force) limiting on load side
+      INCREMENTAL : Int := 0;   // Encoder type (incremental)
+      ABSOLUTE : Int := 1;   // Encoder type (absolute)
+      CYCLIC_ABSOLUTE : Int := 2;   // Encoder type (cyclic absolute)
+      LINEAR : Int := 0;   // Linear axis or motion
+      ROTATORY : Int := 1;   // Rotary axis or motion
+   END_VAR
+
+
+BEGIN
+	// General information about TO
+	#axisGeneral.lengthUnit := #axis.Units.LengthUnit;
+	#axisGeneral.velocityUnit := #axis.Units.VelocityUnit;
+	#axisGeneral.motionType := #axis.Properties.MotionType;
+	#axisGeneral.limitBase := #axis.TorqueLimiting.LimitBase;
+	// Detecting torque or force unit
+	IF #axisGeneral.motionType = #ROTATORY THEN
+	    #axisGeneral.torqueForceUnit := #axis.Units.TorqueUnit;
+	ELSIF #axisGeneral.motionType = #LINEAR THEN
+	    IF #axisGeneral.limitBase = #MOTOR_SIDE THEN  // Motor side -> torque
+	        #axisGeneral.torqueForceUnit := #axis.Units.TorqueUnit;
+	    ELSIF #axisGeneral.limitBase = #LOAD_SIDE THEN  // Load side -> force
+	        #axisGeneral.torqueForceUnit := #axis.Units.ForceUnit;
+	    ELSE
+	        #axisGeneral.torqueForceUnit := 0; // N/A
+	    END_IF;
+	ELSE
+	    #axisGeneral.torqueForceUnit := 0; // N/A
+	END_IF;
+	#axisGeneral.moduloActive := #axis.Modulo.Enable;
+	#axisGeneral.moduloLength := #axis.Modulo.Length;
+	#axisGeneral.axisName := WSTRING_TO_STRING(GetSymbolPath(variable := #axis, size := 36));
+	#axisGeneral.axisType := #POS_SYNC_AXIS;
+	
+	// Initialise encoderType
+	#axisGeneral.encoderType := 0;
+	FOR #tempLoopIndex := 1 TO #MAX_ENCODER_COUNT DO
+	    IF #axis.StatusSensor[#tempLoopIndex].Control THEN  // Active sensor
+	        IF #axis.Sensor[#tempLoopIndex].Type = #INCREMENTAL THEN
+	            #axisGeneral.encoderType := #AXIS_INCREMENTAL_ENCODER; // Incremental encoder
+	            #axisGeneral.encoderTypeSting := 'INCREMENTAL';
+	        ELSIF #axis.Sensor[#tempLoopIndex].Type = #ABSOLUTE THEN
+	            #axisGeneral.encoderType := #AXIS_OR_ENCODER_ABSOLUTE; // Absolute encoder
+	            #axisGeneral.encoderTypeSting := 'ABSOLUTE';
+	        ELSIF #axis.Sensor[#tempLoopIndex].Type = #CYCLIC_ABSOLUTE THEN
+	            #axisGeneral.encoderType := #AXIS_OR_ENCODER_ABSOLUTE; // Absolute encoder
+	            #axisGeneral.encoderTypeSting := 'CYCLIC ABSOLUTE';
+	        ELSE
+	            ;
+	        END_IF;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+END_FUNCTION
+
